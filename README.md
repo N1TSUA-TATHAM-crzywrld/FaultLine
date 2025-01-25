@@ -70,56 +70,55 @@
 
 1. **Clone this repository**:
    ```bash
-   git clone https://github.com/your-username/FaultLine.git
+   git clone https://github.com/your-user/FaultLine.git
    cd FaultLine
 
-Install the necessary tools (examples: apt install, brew install, etc.):
+Install the necessary tools (examples: `apt install`, `brew install`, etc.):
 
 subfinder, dmitry, finalrecon, nmap, sqlmap, ffuf, hydra, nmapAutomator.sh
-Python 3 (for cve_exploit.py or similar scripts)
+`Python 3` (for cve_exploit.py or similar scripts)
 Make the script executable (if needed):
 
-bash
-```
+```bash
 chmod +x FaultLine.sh
 ```
 (Optional) Create a dedicated directory for saving output:
 
-bash
-```
+```bash
 mkdir results
 ```
 ## 🚀 Usage
 Run the script:
 
-bash
-Copy
-Edit
+```bash
 ./FaultLine.sh -t <target> -m <mode> [options]
-Basic Options:
-Flag	Long Option	Description	Required
--t	--target	Target domain or file containing domains	Yes
--m	--mode	Mode: recon, exploit, or all	Yes
--s	--save	Save mode: writes results to specified directory	No
--h	--help	Show the help menu	No
-Example:
+```
+## Basic Options:
 
-bash
-Copy
-Edit
+| Flag | Long Option   | Description                                              | Required |
+|------|--------------|---------------------------------------------------------|----------|
+| `-t` | `--target`   | **Target** domain or file containing domains            | Yes      |
+| `-m` | `--mode`     | **Mode**: `recon`, `exploit`, or `all`                  | Yes      |
+| `-s` | `--save`     | Save mode: writes results to specified **directory**    | No       |
+| `-h` | `--help`     | Show the **help** menu                                  | No       |
+
+**Example**:
+```bash
 ./FaultLine.sh -t example.com -m recon -s ./results
-Runs Recon on example.com, saving all data to ./results.
+```
+---
+Runs Recon on `example.com`, saving all data to `./results`.
 
-📂 Available Modes
-🔍 Recon Mode
+## 📂 Available Modes
+### 🔍 Recon Mode
 Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks (SQLi, XSS, SSRF, IDOR).
-💣 Exploit Mode
+### 💣 Exploit Mode
 Targets potential exploits discovered during recon.
 Attempts command injection, SQL injection, known CVE exploits, etc.
-🌐 All Mode
+### 🌐 All Mode
 Runs both Recon and Exploit sequences end-to-end:
 Subdomain enumeration, scanning, vulnerability checks, and exploitation attempts all in one command.
-🔧 Modules & Capabilities
+### 🔧 Modules & Capabilities
 Subdomain Enumeration – via [subfinder, dmitry].
 Port & Service Discovery – via [nmap].
 Directory Fuzzing – via [ffuf].
