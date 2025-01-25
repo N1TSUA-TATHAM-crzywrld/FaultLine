@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Version-1.0-brightblue.svg" alt="Version 1.0">
   <img src="https://img.shields.io/badge/Made%20with-Bash-success.svg" alt="Made with Bash">
-  <img src="https://img.shields.io/badge/License-Choose%20a%20license-brightorange.svg" alt="License">
+  <img src="https://img.shields.io/badge/License-Choose%20a%20license-orange.svg" alt="License">
   <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg" alt="PRs Welcome">
   <br>
   <img src="https://img.shields.io/github/stars/your-username/FaultLine?style=social" alt="Stars">
