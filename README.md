@@ -1,6 +1,6 @@
 # FaultLine
 FaultLine: Red-Team Hacking Suite
-<p align="center"> <img src="https://img.shields.io/badge/Version-4.2-blue.svg" alt="Version 4.2"> <img src="https://img.shields.io/badge/License-Choose%20a%20license-orange.svg" alt="License"> <img src="https://img.shields.io/badge/Made%20with-Bash-green.svg" alt="Made with Bash"> </p>
+<p align="center"> <img src="https://img.shields.io/badge/Version-1.0-blue.svg" alt="Version 1.0"> <img src="https://img.shields.io/badge/License-Choose%20a%20license-yellow.svg" alt="License"> <img src="https://img.shields.io/badge/Made%20with-Bash-green.svg" alt="Made with Bash"> </p>
 Exposing the cracks in the system.
 
 ## 📜 Overview
