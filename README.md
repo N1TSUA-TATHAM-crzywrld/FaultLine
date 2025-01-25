@@ -75,7 +75,7 @@
 
 Install the necessary tools (examples: `apt install`, `brew install`, etc.):
 
-subfinder, dmitry, finalrecon, nmap, sqlmap, ffuf, hydra, nmapAutomator.sh
+subfinder, dmitry, finalrecon, nmap, sqlmap, ffuf, hydra, nmapAutomator.sh  
 `Python 3` (for cve_exploit.py or similar scripts)
 Make the script executable (if needed):
 
@@ -106,71 +106,71 @@ Run the script:
 ```bash
 ./FaultLine.sh -t example.com -m recon -s ./results
 ```
----
 Runs Recon on `example.com`, saving all data to `./results`.
 
-## 📂 Available Modes
-### 🔍 Recon Mode
-Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks (SQLi, XSS, SSRF, IDOR).
-### 💣 Exploit Mode
-Targets potential exploits discovered during recon.
-Attempts command injection, SQL injection, known CVE exploits, etc.
-### 🌐 All Mode
-Runs both Recon and Exploit sequences end-to-end:
-Subdomain enumeration, scanning, vulnerability checks, and exploitation attempts all in one command.
-### 🔧 Modules & Capabilities
-Subdomain Enumeration – via [subfinder, dmitry].
-Port & Service Discovery – via [nmap].
-Directory Fuzzing – via [ffuf].
-HTML/Comment Crawling & JS Parsing – to reveal hidden links, endpoints, or credentials.
-Vulnerability Testing:
-SQL Injection – [sqlmap] + manual tests.
-XSS – scanning for <script> tags, reflection points.
-SSRF – parameter-based checks to internal endpoints.
-IDOR / Broken Access Control – checks for direct object references or missing ACLs.
-Deep Vuln Scan – using nmapAutomator.sh -t Vulns.
-Exploitation:
-Command Injection – tests with injected whoami, etc.
-SSH Brute Force – via [hydra].
-Known CVE Exploits – run cve_exploit.py or similar scripts.
-Privilege Escalation Checks – scanning for admin endpoints, 403 bypass, etc.
-Output Management:
--s <dir> – saves all logs and data to a chosen directory.
-DEBUG=1 – set in script for verbose, debug-level logging.
-🎯 Example Workflows
-Full Recon & Exploit:
+---
 
-bash
-Copy
-Edit
+# 📂 Available Modes
+
+## 🔍 Recon Mode
+- **Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks (SQLi, XSS, SSRF, IDOR).
+## 💣 Exploit Mode
+- **Targets potential exploits discovered during recon.
+- **Attempts command injection, SQL injection, known CVE exploits, etc.
+## 🌐 All Mode
+- **Runs both Recon and Exploit sequences end-to-end:
+- **Subdomain enumeration, scanning, vulnerability checks, and exploitation attempts all in one command.
+---
+## 🔧 Modules & Capabilities
+- **Subdomain Enumeration – via [subfinder, dmitry].
+- **Port & Service Discovery – via [nmap].
+- **Directory Fuzzing – via [ffuf].
+- **HTML/Comment Crawling & JS Parsing – to reveal hidden links, endpoints, or credentials.
+### Vulnerability Testing:
+- **SQL Injection – [sqlmap] + manual tests.
+- **XSS – scanning for <script> tags, reflection points.
+- **SSRF – parameter-based checks to internal endpoints.
+- **IDOR / Broken Access Control – checks for direct object references or missing ACLs.
+- **Deep Vuln Scan – using `nmapAutomator.sh -t Vulns.`
+### Exploitation:
+- **Command Injection – tests with injected whoami, etc.
+- **SSH Brute Force – via [hydra].
+- **Known CVE Exploits – run cve_exploit.py or similar scripts.
+- **Privilege Escalation Checks – scanning for admin endpoints, 403 bypass, etc.
+### Output Management:
+- **`-s <dir>` – saves all logs and data to a chosen directory.
+- **DEBUG=1 – set in script for verbose, debug-level logging.
+## 🎯 Example Workflows
+### - **Full Recon & Exploit:
+
+```bash
 ./FaultLine.sh -t target-example.com -m all -s output_results
-Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.
-Recon Only:
-
-bash
-Copy
-Edit
+```
+- **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.  
+### - **Recon Only:
+```bash
 ./FaultLine.sh -t target-example.com -m recon
-Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.
-Focused Exploitation:
-
-bash
-Copy
-Edit
+```
+- **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.  
+## - **Focused Exploitation:
+```bash
 ./FaultLine.sh -t target-example.com -m exploit -s exploited_results
-Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
-⚠️ Disclaimer
-This project is for authorized red-team engagements, security research, and educational purposes.
-Always ensure you have explicit permission before testing or attacking any systems.
-No liability is assumed by the author(s) for misuse or damage caused by this software.
-
-🤝 Contributing
-Fork this repo.
-Create a new branch: git checkout -b feature/awesome-improvement.
-Commit your changes: git commit -m 'Add a cool feature'.
-Push to your branch: git push origin feature/awesome-improvement.
-Submit a Pull Request.
-We appreciate all contributions—bug reports, feature ideas, or code improvements.
+```
+- **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
+---
+# ⚠️ Disclaimer
+This project is for authorized red-team engagements, security research, and educational purposes.  
+Always ensure you have explicit permission before testing or attacking any systems.  
+No liability is assumed by the author(s) for misuse or damage caused by this software.  
+---
+# 🤝 Contributing  
+Fork this repo.  
+- **Create a new branch: git checkout -b feature/awesome-improvement.  
+- **Commit your changes: git commit -m 'Add a cool feature'.  
+- **Push to your branch: git push origin feature/awesome-improvement.  
+- **Submit a Pull Request.  
+- **We appreciate all contributions—bug reports, feature ideas, or code improvements.
+---
 
 📜 License
 Pick an open-source license (e.g., MIT License, GPLv3, etc.) and place it here and in a LICENSE file.
