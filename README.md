@@ -87,13 +87,14 @@ chmod +x FaultLine.sh
 ```bash
 mkdir results
 ```
+---
 ## 🚀 Usage
 Run the script:
 
 ```bash
 ./FaultLine.sh -t <target> -m <mode> [options]
 ```
-## Basic Options:
+### Basic Options:
 
 | Flag | Long Option   | Description                                              | Required |
 |------|--------------|---------------------------------------------------------|----------|
@@ -122,37 +123,37 @@ Runs Recon on `example.com`, saving all data to `./results`.
 - **Subdomain enumeration, scanning, vulnerability checks, and exploitation attempts all in one command.
 ---
 ## 🔧 Modules & Capabilities
-- **Subdomain Enumeration – via [subfinder, dmitry].
-- **Port & Service Discovery – via [nmap].
-- **Directory Fuzzing – via [ffuf].
-- **HTML/Comment Crawling & JS Parsing – to reveal hidden links, endpoints, or credentials.
+- **Subdomain Enumeration** – via [subfinder, dmitry].
+- **Port & Service Discovery** – via [nmap].
+- **Directory Fuzzing** – via [ffuf].
+- **HTML/Comment Crawling & JS Parsing** – to reveal hidden links, endpoints, or credentials.
 ### Vulnerability Testing:
-- **SQL Injection – [sqlmap] + manual tests.
-- **XSS – scanning for <script> tags, reflection points.
-- **SSRF – parameter-based checks to internal endpoints.
-- **IDOR / Broken Access Control – checks for direct object references or missing ACLs.
-- **Deep Vuln Scan – using `nmapAutomator.sh -t Vulns.`
+- **SQL Injection** – [sqlmap] + manual tests.
+- **XSS** – scanning for <script> tags, reflection points.
+- **SSRF** – parameter-based checks to internal endpoints.
+- **IDOR / Broken Access Control** – checks for direct object references or missing ACLs.
+- **Deep Vuln Scan** – using `nmapAutomator.sh -t Vulns.`
 ### Exploitation:
-- **Command Injection – tests with injected whoami, etc.
-- **SSH Brute Force – via [hydra].
-- **Known CVE Exploits – run cve_exploit.py or similar scripts.
-- **Privilege Escalation Checks – scanning for admin endpoints, 403 bypass, etc.
+- **Command Injection** – tests with injected whoami, etc.
+- **SSH Brute Force** – via [hydra].
+- **Known CVE Exploits** – run cve_exploit.py or similar scripts.
+- **Privilege Escalation Checks** – scanning for admin endpoints, 403 bypass, etc.
 ### Output Management:
-- **`-s <dir>` – saves all logs and data to a chosen directory.
+- `-s <dir>` – saves all logs and data to a chosen directory.
 - **DEBUG=1 – set in script for verbose, debug-level logging.
 ## 🎯 Example Workflows
-### - **Full Recon & Exploit:
+### - **Full Recon & Exploit:**
 
 ```bash
 ./FaultLine.sh -t target-example.com -m all -s output_results
 ```
 - **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.  
-### - **Recon Only:
+### - **Recon Only:**
 ```bash
 ./FaultLine.sh -t target-example.com -m recon
 ```
 - **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.  
-## - **Focused Exploitation:
+## - **Focused Exploitation:**
 ```bash
 ./FaultLine.sh -t target-example.com -m exploit -s exploited_results
 ```
