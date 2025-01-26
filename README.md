@@ -73,28 +73,29 @@
    git clone https://github.com/your-user/FaultLine.git
    cd FaultLine
 
-Install the necessary tools (examples: `apt install`, `brew install`, etc.):
+2. **Install the necessary tools** (**examples:** `apt install`, `brew install`, etc.):
 
-subfinder, dmitry, finalrecon, nmap, sqlmap, ffuf, hydra, nmapAutomator.sh  
-`Python 3` (for cve_exploit.py or similar scripts)
-Make the script executable (if needed):
+  -subfinder, dmitry, finalrecon, nmap, sqlmap, ffuf, hydra, nmapAutomator.sh  
+  -`Python 3` (for cve_exploit.py or similar scripts)
 
-```bash
-chmod +x FaultLine.sh
-```
-(Optional) Create a dedicated directory for saving output:
+3. **Make the script executable (if needed):**
 
-```bash
-mkdir results
-```
----
-## 🚀 Usage
+  ```bash
+  chmod +x FaultLine.sh
+  ```
+4. (Optional) **Create a dedicated directory for saving output:**
+
+  ```bash
+  mkdir results
+  ```
+-------
+# 🚀 Usage
 Run the script:
 
 ```bash
 ./FaultLine.sh -t <target> -m <mode> [options]
 ```
-### Basic Options:
+## **Basic Options:**  
 
 | Flag | Long Option   | Description                                              | Required |
 |------|--------------|---------------------------------------------------------|----------|
@@ -103,74 +104,88 @@ Run the script:
 | `-s` | `--save`     | Save mode: writes results to specified **directory**    | No       |
 | `-h` | `--help`     | Show the **help** menu                                  | No       |
 
-**Example**:
+**Example**:  
 ```bash
 ./FaultLine.sh -t example.com -m recon -s ./results
 ```
-Runs Recon on `example.com`, saving all data to `./results`.
+
+<strong>Runs Recon on `example.com`, saving all data to `./results`.</strong>
 
 ---
 
-# 📂 Available Modes
+# 📂 **Available Modes**  
 
 ## 🔍 Recon Mode
-- **Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks (SQLi, XSS, SSRF, IDOR).
+- Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks **(SQLi, XSS, SSRF, IDOR)**.
 ## 💣 Exploit Mode
-- **Targets potential exploits discovered during recon.
-- **Attempts command injection, SQL injection, known CVE exploits, etc.
+- Targets potential exploits discovered during recon.
+- Attempts command injection, SQL injection, known CVE exploits, etc.
 ## 🌐 All Mode
-- **Runs both Recon and Exploit sequences end-to-end:
-- **Subdomain enumeration, scanning, vulnerability checks, and exploitation attempts all in one command.
+- Runs both Recon **and** Exploit sequences end-to-end:
+- Subdomain enumeration, scanning, vulnerability checks, and exploitation attempts all in one command.
+
 ---
-## 🔧 Modules & Capabilities
+
+# **🔧 Modules & Capabilities**
 - **Subdomain Enumeration** – via [subfinder, dmitry].
 - **Port & Service Discovery** – via [nmap].
 - **Directory Fuzzing** – via [ffuf].
 - **HTML/Comment Crawling & JS Parsing** – to reveal hidden links, endpoints, or credentials.
-### Vulnerability Testing:
+---
+### **Vulnerability Testing:**
 - **SQL Injection** – [sqlmap] + manual tests.
-- **XSS** – scanning for <script> tags, reflection points.
+- **XSS** – scanning for **<script>** tags, reflection points.
 - **SSRF** – parameter-based checks to internal endpoints.
 - **IDOR / Broken Access Control** – checks for direct object references or missing ACLs.
 - **Deep Vuln Scan** – using `nmapAutomator.sh -t Vulns.`
-### Exploitation:
+### **Exploitation:**
 - **Command Injection** – tests with injected whoami, etc.
 - **SSH Brute Force** – via [hydra].
-- **Known CVE Exploits** – run cve_exploit.py or similar scripts.
-- **Privilege Escalation Checks** – scanning for admin endpoints, 403 bypass, etc.
-### Output Management:
+- **Known CVE Exploits** – run `cve_exploit.py` or similar scripts.
+- **Privilege Escalation Checks** – scanning for **admin endpoints**, **403 bypass**, etc.
+### **Output Management:**
 - `-s <dir>` – saves all logs and data to a chosen directory.
 - **DEBUG=1 – set in script for verbose, debug-level logging.
-## 🎯 Example Workflows
-### - **Full Recon & Exploit:**
+---
+# **🎯 Example Workflows**  
 
-```bash
-./FaultLine.sh -t target-example.com -m all -s output_results
-```
-- **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.  
-### - **Recon Only:**
-```bash
-./FaultLine.sh -t target-example.com -m recon
-```
-- **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.  
-## - **Focused Exploitation:**
-```bash
-./FaultLine.sh -t target-example.com -m exploit -s exploited_results
-```
-- **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
+## - **Full Recon & Exploit:**
+
+  ```bash
+  ./FaultLine.sh -t target-example.com -m all -s output_results
+  ```
+  - **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.
+---  
+  ## - **Recon Only:**
+  
+  ```bash
+  ./FaultLine.sh -t target-example.com -m recon
+  ```
+  - **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.
 ---
-# ⚠️ Disclaimer
-This project is for authorized red-team engagements, security research, and educational purposes.  
-Always ensure you have explicit permission before testing or attacking any systems.  
-No liability is assumed by the author(s) for misuse or damage caused by this software.  
+  ## - **Focused Exploitation:**
+  
+  ```bash
+  ./FaultLine.sh -t target-example.com -m exploit -s exploited_results
+  ```
+  - **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
+  ---
+### ⚠️ Disclaimer
+  This project is for research, and educational purposes only.  
+  Always ensure you have explicit permission before testing or attacking any systems.
+  No liability is assumed by the author for misuse or damage caused by this software.  
+    This _tool_ is only meant to demonstrate what a would be hacker would maybe use.  
+    Use according to the law.
 ---
-# 🤝 Contributing  
+### 🤝 Contributing  
 Fork this repo.  
-- **Create a new branch: git checkout -b feature/awesome-improvement.  
-- **Commit your changes: git commit -m 'Add a cool feature'.  
-- **Push to your branch: git push origin feature/awesome-improvement.  
-- **Submit a Pull Request.  
-- **We appreciate all contributions—bug reports, feature ideas, or code improvements.
+- **Create a new branch:** git checkout -b feature/awesome-improvement.  
+- **Commit your changes:** git commit -m 'Add a cool feature'.  
+- **Push to your branch:** git push origin feature/awesome-improvement.  
+- **Submit a Pull Request.**
+---
+  - **I'm far from a _seasoned_ hacker or an _experienced_ programmer.**
+  - **Any contribution of any form, even if only words are appreciated.**  
 ---
 
 📜 License
