@@ -148,30 +148,8 @@ Run the script:
 ### **Output Management:**
 - `-s <dir>` – saves all logs and data to a chosen directory.
 - **DEBUG=1 – set in script for verbose, debug-level logging.
----
-# **🎯 Example Workflows**  
 
-## - **Full Recon & Exploit:**
-
-  ```bash
-  ./FaultLine.sh -t target-example.com -m all -s output_results
-  ```
-  - **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.
----  
-  ## - **Recon Only:**
-  
-  ```bash
-  ./FaultLine.sh -t target-example.com -m recon
-  ```
-  - **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.
 ---
-  ## - **Focused Exploitation:**
-  
-  ```bash
-  ./FaultLine.sh -t target-example.com -m exploit -s exploited_results
-  ```
-  - **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
-  ---
 ### ⚠️ Disclaimer
   This project is for research, and educational purposes only.  
   Always ensure you have explicit permission before testing or attacking any systems.
@@ -179,14 +157,15 @@ Run the script:
     This _tool_ is only meant to demonstrate what a would be hacker would maybe use.  
     Use according to the law.
 ---
- I'm mainly focused on automating **_manual_ enumeration and exploitation**. Currently this tool automates a bunch of tasks, but my goal is to make FaultLine think and behave/respond more like a human hacker rather than just running tools and spitting out results.  
+ I'm mainly focused on automating **_manual_ enumeration and exploitation**.  
+ Currently this tool automates a bunch of tasks, but my goal is to make FaultLine think and behave/respond more like a human hacker rather than just running tools and spitting out results.  
  
  In other words, my focus is on expanding the manual side of the code.
 So that when using this _tool_, you get more than just another mediocore scan with cluttered results that never lead to any type of result. 
 
-Instead of just listing outputs, it should actually analyze what it finds and adapt—like if it discovers a certain tech stack.  
-It should immediately check for vulnerabilities related to it. If it finds an exposed API key, 
-it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.
+Instead of just listing outputs, it should actually analyze what it finds and adapt—like if it discovers a certain tech stack.   
+  It should immediately check for vulnerabilities related to it. If it finds an exposed API key, 
+  it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.
 ---
 ### **I want FaultLine to act like a real pentester would:**
 
@@ -222,21 +201,21 @@ Some of the _"unique"_ aspects that I intend to implement,(some already have bee
   - Switch cookies, headers, and user roles to escalate access  
   - Look for IDOR vulnerabilities in APIs
 ---
-### Examples ###
+## Examples ##
 
-**Testing Authentication Bypass Without Tools**
+### **Testing Authentication Bypass Without Tools**
   ``` bash
   curl -X POST "https://target.com/login" -d "username=admin'--&password="
   ```
   Instead of simply running `Hydra`, the script should recognize authentication weaknesses (e.g., SQL injection in login forms) and attempt them dynamically.
 
-**Manually Exploiting Open Directories**
+### **Manually Exploiting Open Directories**
 ``` bash
 curl -s https://target.com/.git/config
 ```
   If directory listing is enabled, the tool should recognize this and automatically attempt to retrieve sensitive files (e.g., .git, .env, backup.sql).
 
-**Adaptive URL Fuzzing**
+### **Adaptive URL Fuzzing**
 
 ```bash
   for endpoint in "admin" "backup" "hidden" "old"; do
@@ -245,12 +224,13 @@ curl -s https://target.com/.git/config
 ```
 Rather than blindly fuzzing, the tool should prioritize directories based on prior reconnaissance (e.g., tech stack hints, known CMS structures).
 
-**Checking for Misconfigured APIs**
+### **Checking for Misconfigured APIs**
 
 ``` bash
 curl -s -H "Authorization: Bearer invalidtoken" "https://api.target.com/v1/users"
 ```
 If an API responds with **"Invalid Token"** instead of **"Unauthorized"**, the script should recognize it as a potential IDOR or broken access control vulnerability.
+
 The end goal is to make it not just another automated tool but one that actually learns, makes smart decisions, and finds bugs others won’t.
 ---
 ### 🤝 Contributing  
