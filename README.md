@@ -243,6 +243,29 @@ Fork this repo.
   - **I'm far from a _seasoned_ hacker or an _experienced_ programmer.**
   - **Any contribution of any form, even if only words are appreciated.**  
 ---
+# **🎯 Example Workflows**  
+
+## - **Full Recon & Exploit:**
+
+  ```bash
+  ./FaultLine.sh -t target-example.com -m all -s output_results
+  ```
+  - **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.
+---  
+  ## - **Recon Only:**
+  
+  ```bash
+  ./FaultLine.sh -t target-example.com -m recon
+  ```
+  - **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.
+---
+  ## - **Focused Exploitation:**
+  
+  ```bash
+  ./FaultLine.sh -t target-example.com -m exploit -s exploited_results
+  ```
+  - **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
+---
 📜 License
 
 mathematica
