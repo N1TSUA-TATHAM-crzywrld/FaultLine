@@ -179,36 +179,34 @@ Run the script:
     This _tool_ is only meant to demonstrate what a would be hacker would maybe use.  
     Use according to the law.
 ---
-### 🤝 Contributing  
-Fork this repo.  
-- **Create a new branch:** git checkout -b feature/awesome-improvement.  
-- **Commit your changes:** git commit -m 'Add a cool feature'.  
-- **Push to your branch:** git push origin feature/awesome-improvement.  
-- **Submit a Pull Request.**
+ I'm mainly focused on automating **_manual_ enumeration and exploitation**. Currently this tool automates a bunch of tasks, but my goal is to make FaultLine think and behave/respond more like a human hacker rather than just running tools and spitting out results.  
+ 
+ In other words, my focus is on expanding the manual side of the code.
+So that when using this _tool_, you get more than just another mediocore scan with cluttered results that never lead to any type of result. 
+
+Instead of just listing outputs, it should actually analyze what it finds and adapt—like if it discovers a certain tech stack.  
+It should immediately check for vulnerabilities related to it. If it finds an exposed API key, 
+it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.
 ---
-  - **I'm far from a _seasoned_ hacker or an _experienced_ programmer.**
-  - **Any contribution of any form, even if only words are appreciated.**  
----
- I'm mainly focused on automating manual enumeration and exploitation. This tool automates a bunch of tasks, but my goal is to make FaultLine think and behave/respond more like a human hacker rather than just running tools and spitting out results.  
- In other words, my focus is on expanding the manual side of the code. That when using this _tool_, you get more than just another mediocore scan with cluttered results that never lead to any type of result. 
+### **I want FaultLine to act like a real pentester would:**
 
-Instead of just listing outputs, it should actually analyze what it finds and adapt—like if it discovers a certain tech stack, it should immediately check for vulnerabilities related to it. If it finds an exposed API key, it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.
-
-I want FaultLine to act like a real pentester would:
-
-  1. Thoroughly map the attack surface, treating every little detail as a potential lead.
-  2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.
-  3. Combine manual methods and automation to go deep and find things most automated tools would miss.
+  **1. Thoroughly map the attack surface, treating every little detail as a potential lead.**
+  
+  **2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.**
+  
+  **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
 
 As of right now it's a multi-tool automater with some unique aspects that go along with them.  
-Here's everything that I intend to implement,(some already have been).  
+Some of the _"unique"_ aspects that I intend to implement,(some already have been).  
 
 **Manual API Testing**
   - Parse JavaScript files for API endpoints & secrets
-  - Send crafted API requests to test for IDOR, rate-limit bypass, etc.   
+  - Send crafted API requests to test for IDOR, rate-limit bypass, etc. 
+
 **Fuzzing Based on Findings**  
   - Adjust wordlists based on discovered tech  
   - Focus on paths likely to contain juicy info (e.g., `/admin`, `/wp-json/`)
+
 **Using Recon Data to Guide Attacks**
   - Extract leaked credentials, API keys, or tokens  
   - Test against discovered endpoints in real-time  
@@ -222,9 +220,48 @@ Here's everything that I intend to implement,(some already have been).
   - **Example**: CORS misconfiguration + API Key Leakage → Full Account Takeover  
 **Privilege Escalation**  
   - Switch cookies, headers, and user roles to escalate access  
-  - Look for IDOR vulnerabilities in APIs   
+  - Look for IDOR vulnerabilities in APIs
+---
+### Examples ###
 
+**Testing Authentication Bypass Without Tools**
+  ``` bash
+  curl -X POST "https://target.com/login" -d "username=admin'--&password="
+  ```
+  Instead of simply running `Hydra`, the script should recognize authentication weaknesses (e.g., SQL injection in login forms) and attempt them dynamically.
+
+**Manually Exploiting Open Directories**
+``` bash
+curl -s https://target.com/.git/config
+```
+  If directory listing is enabled, the tool should recognize this and automatically attempt to retrieve sensitive files (e.g., .git, .env, backup.sql).
+
+**Adaptive URL Fuzzing**
+
+```bash
+  for endpoint in "admin" "backup" "hidden" "old"; do
+      curl -s -o /dev/null -w "%{http_code}" "https://target.com/$endpoint"
+  done
+```
+Rather than blindly fuzzing, the tool should prioritize directories based on prior reconnaissance (e.g., tech stack hints, known CMS structures).
+
+**Checking for Misconfigured APIs**
+
+``` bash
+curl -s -H "Authorization: Bearer invalidtoken" "https://api.target.com/v1/users"
+```
+If an API responds with **"Invalid Token"** instead of **"Unauthorized"**, the script should recognize it as a potential IDOR or broken access control vulnerability.
 The end goal is to make it not just another automated tool but one that actually learns, makes smart decisions, and finds bugs others won’t.
+---
+### 🤝 Contributing  
+Fork this repo.  
+- **Create a new branch:** git checkout -b feature/awesome-improvement.  
+- **Commit your changes:** git commit -m 'Add a cool feature'.  
+- **Push to your branch:** git push origin feature/awesome-improvement.  
+- **Submit a Pull Request.**
+---
+  - **I'm far from a _seasoned_ hacker or an _experienced_ programmer.**
+  - **Any contribution of any form, even if only words are appreciated.**  
 ---
 📜 License
 
