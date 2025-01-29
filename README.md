@@ -189,26 +189,44 @@ Fork this repo.
   - **I'm far from a _seasoned_ hacker or an _experienced_ programmer.**
   - **Any contribution of any form, even if only words are appreciated.**  
 ---
-    ┌─────────────────────────────────────┐
-    │ Check Robots.txt, Sitemap, Hidden  │
-    │ Files & Exposed Panels              │
-    └─────────────────────────────────────┘
-                  ↓
-    ┌──────────────────────────────────┐
-    │ Manually Inspect API Endpoints  │
-    │  - Test for Authentication Bypass│
-    │  - Check Rate Limiting, CORS, IDOR│
-    └──────────────────────────────────┘
-                  ↓
-    ┌──────────────────────────────────┐
-    │ Analyze HTTP Responses & Headers │
-    │  - Check for Misconfigurations  │
-    │  - CSP Bypass, Debug Mode, Cookies │
-    └──────────────────────────────────┘
+ I'm mainly focused on automating manual enumeration and exploitation. This tool automates a bunch of tasks, but my goal is to make FaultLine think and behave/respond more like a human hacker rather than just running tools and spitting out results.  
+ In other words, my focus is on expanding the manual side of the code. That when using this _tool_, you get more than just another mediocore scan with cluttered results that never lead to any type of result. 
 
+Instead of just listing outputs, it should actually analyze what it finds and adapt—like if it discovers a certain tech stack, it should immediately check for vulnerabilities related to it. If it finds an exposed API key, it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.
+
+I want FaultLine to act like a real pentester would:
+
+  1. Thoroughly map the attack surface, treating every little detail as a potential lead.
+  2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.
+  3. Combine manual methods and automation to go deep and find things most automated tools would miss.
+
+As of right now it's a multi-tool automater with some unique aspects that go along with them.  
+Here's everything that I intend to implement,(some already have been).  
+
+**Manual API Testing**
+  - Parse JavaScript files for API endpoints & secrets
+  - Send crafted API requests to test for IDOR, rate-limit bypass, etc.   
+**Fuzzing Based on Findings**  
+  - Adjust wordlists based on discovered tech  
+  - Focus on paths likely to contain juicy info (e.g., `/admin`, `/wp-json/`)
+**Using Recon Data to Guide Attacks**
+  - Extract leaked credentials, API keys, or tokens  
+  - Test against discovered endpoints in real-time  
+---
+### **Exploitation Phase**
+
+**Using What’s Found to Gain More Access**
+  - Test SQL injection manually with crafted payloads  
+  - Try XSS payloads across multiple contexts (reflected, stored, DOM)  
+**Chaining Vulnerabilities**
+  - **Example**: CORS misconfiguration + API Key Leakage → Full Account Takeover  
+**Privilege Escalation**  
+  - Switch cookies, headers, and user roles to escalate access  
+  - Look for IDOR vulnerabilities in APIs   
+
+The end goal is to make it not just another automated tool but one that actually learns, makes smart decisions, and finds bugs others won’t.
 ---
 📜 License
-Pick an open-source license (e.g., MIT License, GPLv3, etc.) and place it here and in a LICENSE file.
 
 mathematica
 Copy
