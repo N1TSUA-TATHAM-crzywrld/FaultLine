@@ -189,33 +189,22 @@ Fork this repo.
   - **I'm far from a _seasoned_ hacker or an _experienced_ programmer.**
   - **Any contribution of any form, even if only words are appreciated.**  
 ---
-|[ START ]|
-     ↓
-[ Subdomain Enumeration ]
-     ↓
-    Found?
-    /  \
-   Yes   No
-   ↓      ↓
-[ Test Ports & Services ]      [ Adjust Wordlist / Retry ]
-     ↓
-[ Identify Tech Stack ]
-     ↓
-[ Fuzz Directories/APIs ]
-     ↓
-    Matches?
-    /    \
-   Yes     No
-   ↓        ↓
-[ Exploit (SQLi, XSS, etc.) ]  [ Refocus on new attack surface ]
-     ↓
-[ Check Authentication/Session Mgmt Flaws ]
-     ↓
-[ Chain Exploits if Possible ]
-     ↓
-[ Report Findings with PoC Payloads ]
-     ↓
-[ END ]
+    ┌─────────────────────────────────────┐
+    │ Check Robots.txt, Sitemap, Hidden  │
+    │ Files & Exposed Panels              │
+    └─────────────────────────────────────┘
+                  ↓
+    ┌──────────────────────────────────┐
+    │ Manually Inspect API Endpoints  │
+    │  - Test for Authentication Bypass│
+    │  - Check Rate Limiting, CORS, IDOR│
+    └──────────────────────────────────┘
+                  ↓
+    ┌──────────────────────────────────┐
+    │ Analyze HTTP Responses & Headers │
+    │  - Check for Misconfigurations  │
+    │  - CSP Bypass, Debug Mode, Cookies │
+    └──────────────────────────────────┘
 
 ---
 📜 License
