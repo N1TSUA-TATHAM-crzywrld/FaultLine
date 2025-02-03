@@ -168,13 +168,13 @@ Instead of just listing outputs, it should actually analyze what it finds and ad
   it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.  
   
 ---------------------
-## **I want FaultLine to act like a real pentester would:**
+# **I want FaultLine to act like a real pentester would:**
 
-  **1. Thoroughly map the attack surface, treating every little detail as a potential lead.**
+    **1. Thoroughly map the attack surface, treating every little detail as a potential lead.**
   
-  **2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.**
+    **2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.**
   
-  **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
+    **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
 
 
 As of right now it's a multi-tool automater with some unique aspects that go along with them.  
