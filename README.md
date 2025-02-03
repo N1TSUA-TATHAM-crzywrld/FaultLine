@@ -168,29 +168,29 @@ Instead of just listing outputs, it should actually analyze what it finds and ad
   it shouldn’t just save it to a file; it should actually try using it against the API and see what it can access.  
   
 ---------------------
-# **I want FaultLine to act like a real pentester would:**
+# **I want FaultLine to act like a real pentester would:**  
 
-    **1. Thoroughly map the attack surface, treating every little detail as a potential lead.**
+   **1. Thoroughly map the attack surface, treating every little detail as a potential lead.**
   
-    **2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.**
+   **2. Use recon data for smart exploitation, like chaining an exposed admin panel with a weak password into full access.**
   
-    **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
+   **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
 
 
 As of right now it's a multi-tool automater with some unique aspects that go along with them.  
 Some of the _"unique"_ aspects that I intend to implement,(some already have been).  
 
-**Manual API Testing**
-  - Parse JavaScript files for API endpoints & secrets
-  - Send crafted API requests to test for IDOR, rate-limit bypass, etc. 
+  **Manual API Testing**
+    - Parse JavaScript files for API endpoints & secrets
+    - Send crafted API requests to test for IDOR, rate-limit bypass, etc. 
 
-**Fuzzing Based on Findings**  
-  - Adjust wordlists based on discovered tech  
-  - Focus on paths likely to contain juicy info (e.g., `/admin`, `/wp-json/`)
+  **Fuzzing Based on Findings**  
+    - Adjust wordlists based on discovered tech  
+    - Focus on paths likely to contain juicy info (e.g., `/admin`, `/wp-json/`)
 
-**Using Recon Data to Guide Attacks**
-  - Extract leaked credentials, API keys, or tokens  
-  - Test against discovered endpoints in real-time  
+  **Using Recon Data to Guide Attacks**
+    - Extract leaked credentials, API keys, or tokens  
+    - Test against discovered endpoints in real-time  
 ---
 ### **Exploitation Phase**
 
