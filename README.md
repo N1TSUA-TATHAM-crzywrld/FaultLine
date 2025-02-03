@@ -176,23 +176,23 @@ Instead of just listing outputs, it should actually analyze what it finds and ad
   
    **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
 
-
-As of right now it's a multi-tool automater with some unique aspects that go along with them.  
-Some of the _"unique"_ aspects that I intend to implement,(some already have been).  
-
-  **Manual API Testing**
-    - Parse JavaScript files for API endpoints & secrets
-    - Send crafted API requests to test for IDOR, rate-limit bypass, etc. 
-
-  **Fuzzing Based on Findings**  
-    - Adjust wordlists based on discovered tech  
-    - Focus on paths likely to contain juicy info (e.g., `/admin`, `/wp-json/`)
-
-  **Using Recon Data to Guide Attacks**
-    - Extract leaked credentials, API keys, or tokens  
-    - Test against discovered endpoints in real-time  
 ---
-### **Exploitation Phase**
+## As of right now it's a multi-tool automater with some unique aspects that go along with them.  
+## Some of the _"unique"_ aspects that I intend to implement,(some already have been).  
+
+ ### **Manual API Testing**
+  - Parse JavaScript files for API endpoints & secrets  
+  - Send crafted API requests to test for IDOR, rate-limit bypass, etc.  
+
+ ### **Fuzzing Based on Findings**  
+  - Adjust wordlists based on discovered tech  
+  - Focus on paths likely to contain juicy info (e.g., `/admin`, `/wp-json/`)  
+
+ ### **Using Recon Data to Guide Attacks**
+  - Extract leaked credentials, API keys, or tokens  
+  - Test against discovered endpoints in real-time  
+---
+## **Exploitation Phase**
 
 **Using What’s Found to Gain More Access**
   - Test SQL injection manually with crafted payloads  
