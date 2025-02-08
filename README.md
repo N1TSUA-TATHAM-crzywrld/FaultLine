@@ -178,7 +178,9 @@ Instead of just listing outputs, it should actually analyze what it finds and ad
 
 ---
 ## As of right now it's a multi-tool automater with some unique aspects that go along with them.  
-## Some of the _"unique"_ aspects that I intend to implement,(some already have been).  
+-------  
+
+## **Some** of the _"unique"_ aspects that I intend to implement,(some already have been).  
 
  ### **Manual API Testing**
   - Parse JavaScript files for API endpoints & secrets  
