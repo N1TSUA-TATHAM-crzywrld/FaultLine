@@ -91,7 +91,9 @@
   mkdir results
   ```
 -------
-# 🚀 Usage
+<div align="center">
+ # 🚀 Usage  
+</div>
 Run the script:
 
 ```bash
