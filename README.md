@@ -91,11 +91,8 @@
   mkdir results
   ```
 -------
-<div align="center">
- # 🚀 Usage  
-</div>
+ # 🚀 Usage
 Run the script:
-
 ```bash
 ./FaultLine.sh -t <target> -m <mode> [options]
 ```
