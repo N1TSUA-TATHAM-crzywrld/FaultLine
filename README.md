@@ -92,7 +92,7 @@
   mkdir results
   ```
 -------
- # 🚀 Usage
+ <h1 align="center">🚀 Usage</h1>
 Run the script:
 ```bash
 ./FaultLine.sh -t <target> -m <mode> [options]
@@ -115,8 +115,7 @@ Run the script:
 
 ---
 
-<h2 align="center"> 📂 Available Modes </h2>
-
+<h1 align="center"> 📂 Available Modes </h1>
 ## 🔍 Recon Mode
 - Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks **(SQLi, XSS, SSRF, IDOR)**.
 ## 💣 Exploit Mode
@@ -128,7 +127,7 @@ Run the script:
 
 ---
 
-# **🔧 Modules & Capabilities**
+<h1 align="center">🔧 Modules & Capabilities</h1>
 - **Subdomain Enumeration** – via [subfinder, dmitry].
 - **Port & Service Discovery** – via [nmap].
 - **Directory Fuzzing** – via [ffuf].
@@ -176,7 +175,7 @@ Instead of just listing outputs, it should actually analyze what it finds and ad
   
    **3. Combine manual methods and automation to go deep and find things most automated tools would miss.**
 
----
+-------
 ## As of right now it's a multi-tool automater with some unique aspects that go along with them.  
 -------  
 
@@ -195,7 +194,6 @@ Instead of just listing outputs, it should actually analyze what it finds and ad
   - Test against discovered endpoints in real-time  
 ---
 ## **Exploitation Phase**
-
 **Using What’s Found to Gain More Access**
   - Test SQL injection manually with crafted payloads  
   - Try XSS payloads across multiple contexts (reflected, stored, DOM)  
