@@ -39,6 +39,8 @@
 </div>
 
 ---
+> [!IMPORTANT]
+> There are two versions, both in Bash. The reason there are two is because im undecided which i want to continue with.
 
 ## ✨ Table of Contents
 
