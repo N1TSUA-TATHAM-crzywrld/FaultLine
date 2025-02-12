@@ -130,6 +130,7 @@ Run the script:
 ---
 
 <h1 align="center">🔧 Modules & Capabilities</h1>
+
 - **Subdomain Enumeration** – via [subfinder, dmitry].
 - **Port & Service Discovery** – via [nmap].
 - **Directory Fuzzing** – via [ffuf].
