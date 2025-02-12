@@ -93,6 +93,7 @@
   ```
 -------
  <h1 align="center">🚀 Usage</h1>
+
 Run the script:
 ```bash
 ./FaultLine.sh -t <target> -m <mode> [options]
@@ -116,6 +117,7 @@ Run the script:
 ---
 
 <h1 align="center"> 📂 Available Modes </h1>
+
 ## 🔍 Recon Mode
 - Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks **(SQLi, XSS, SSRF, IDOR)**.
 ## 💣 Exploit Mode
