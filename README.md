@@ -115,7 +115,7 @@ Run the script:
 
 ---
 
-# 📂 **Available Modes**  
+<h2 align="center"> 📂 Available Modes </h2>
 
 ## 🔍 Recon Mode
 - Subdomain discovery, port scanning, directory fuzzing, JS endpoint extraction, and standard vulnerability checks **(SQLi, XSS, SSRF, IDOR)**.
