@@ -271,14 +271,11 @@ Fork this repo.
   ```
   - **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
 ---
-📜 License
+## 📞 Contact
+💬 Have questions? Reach out!
 
-mathematica
-Copy
-Edit
-[Your License Text Here]
-Happy hacking and stay authorized! Use responsibly to secure and strengthen systems, not harm them.
-
+📧 **Email:** atatham45@gmail.com
+----
 1. **Clone this repository**:
    ```bash
    git clone https://github.com/your-username/FaultLine.git
