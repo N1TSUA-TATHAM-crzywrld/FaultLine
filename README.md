@@ -255,21 +255,21 @@ Fork this repo.
   ```bash
   ./FaultLine.sh -t target-example.com -m all -s output_results
   ```
-  - **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.
+  - **Performs subdomain enumeration, scanning, vuln detection, exploitation attempts – saves it all.**
 ---  
   ## - **Recon Only:**
   
   ```bash
   ./FaultLine.sh -t target-example.com -m recon
   ```
-  - **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.
+  - **Gathers host intelligence, subdomains, open ports, and basic vulnerability insights.**
 ---
   ## - **Focused Exploitation:**
   
   ```bash
   ./FaultLine.sh -t target-example.com -m exploit -s exploited_results
   ```
-  - **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.
+  - **Skips the broad recon steps and directly tries exploit modules, logging to exploited_results.**
 ---
 ## 📞 Contact
 💬 Have questions? Reach out!
