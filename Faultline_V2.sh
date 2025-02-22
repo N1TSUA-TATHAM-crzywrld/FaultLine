@@ -266,7 +266,6 @@ test_directory_traversal() {
     OUTPUT_FILE="results/traversal_vulns.txt"
     mkdir -p results
 
-    # ======= TARGETED PAYLOADS =======
     PAYLOADS=(
         "../../../../etc/passwd"
         "../../../../etc/shadow"
@@ -372,7 +371,6 @@ test_http_methods() {
     done
 }
 
-# ======= MAIN FUNCTION =======
 main() {
     banner
 
@@ -397,10 +395,10 @@ main() {
             parse_js_files
             test_http_methods
             test_file_upload
-            #test_directory_traversal
+            test_directory_traversal
+            bypass_403
             Port_Scanning
             FinalRecon_call
-            bypass_403
             sql_injection_test
             temp_sqlmap
             ;;
@@ -409,7 +407,6 @@ main() {
 
 }
 
-# ======= ARGUMENT PARSING =======
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -t) TARGET="$2"; shift ;;
