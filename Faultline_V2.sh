@@ -357,7 +357,7 @@ test_sqli() {
 
 temp_sqlmap() {
     echo -e "Start of Testing of SQLmap"
-    dirtyresponse=$(sqlmap -u "https://$TARGET/?id=1" --batch --level=5 --risk=3 --random-agent -o "$OUTPUT_DIR/sqlmap.txt")
+    dirtyresponse=$(sqlmap -u "https://$TARGET" --delay=2 --batch --level=5 --risk=3 --crawl=3 --fingerprint --random-agent -o "$OUTPUT_DIR/sqlmap.txt")
 }
 
 test_http_methods() {
