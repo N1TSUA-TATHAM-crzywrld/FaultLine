@@ -142,6 +142,19 @@ crawl_html() {
     echo -e "${GREEN}[+] HTML Crawler Complete.${NC}"
 }
 
+detect_cms() {
+    echo -e "${CYAN}[+] Detecting CMS...${NC}"
+    response=$(curl -s "$TARGET")
+    if echo "$response" | grep -iq "wp-content"; then
+        echo -e "${GREEN}[+] WordPress detected.${NC}"
+    elif echo "$response" | grep -iq "drupal"; then
+        echo -e "${GREEN}[+] Drupal detected.${NC}"
+    elif echo "$response" | grep -iq "joomla"; then
+        echo -e "${GREEN}[+] Joomla detected.${NC}"
+    else
+        echo -e "${YELLOW}[-] No CMS detected.${NC}"
+    fi
+}
 
 bypass_403() {
     echo "[+] Attempting 403 bypass on: $TARGET"
@@ -377,6 +390,7 @@ main() {
     case "$MODE" in
         recon)
             crawl_html
+            detect_cms
             parse_js_files
             Port_Scanning
             FinalRecon_call
@@ -392,6 +406,7 @@ main() {
             ;;
         all)
             crawl_html
+            detect_cms
             parse_js_files
             test_http_methods
             test_file_upload
