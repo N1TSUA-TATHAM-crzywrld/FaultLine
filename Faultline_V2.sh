@@ -158,8 +158,10 @@ bypass_403() {
 
 
 Port_Scanning() {
+    echo -e "${RED}[+] IMPORTANT!${NC}"
+    echo -e "${YELLOW}[+] About to begin ~Deep Crawl~ on $TARGET...5-10 min to complete ${NC}"
     echo "[*] Scanning ports..."
-    nmap_results=$(nmap -sV -O -p- -T4 "$TARGET")
+    nmap_results=$(sudo ./nmapAutomator.sh -H "$TARGET" -t Full)
     echo -e "${GREEN}[+] Nmap Results:${NC}\n$nmap_results"
     save_output "$nmap_results" "nmap_$TARGET.txt"
 }
