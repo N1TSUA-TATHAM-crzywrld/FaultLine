@@ -2,10 +2,11 @@
 
 
 # ======= COLORS =======
-RED="\033[0;31m"
-GREEN="\033[0;32m"
+RED="\033[1;31m"
+GREEN="\033[1;32m"
 CYAN="\033[1;96m"   #Cyan="\[\033[0;36m\]"
 YELLOW="\033[1;33m"
+MAGENTA="\033[1;35m"
 NC="\033[0m" # No Color
 
 # ======= VARIABLES =======
@@ -38,13 +39,13 @@ banner() {
     echo "||                                                                                  ||";
     echo "++----------------------------------------------------------------------------------++";
     echo "++----------------------------------------------------------------------------------++";
-    echo -e "${NC}FaultLine: Red-Team Pentesting Suite\n"
+    echo -e "   ${NC}FaultLine: Red-Team Pentesting Suite\n"
 
-    echo -e "      ${YELLOW}Offensive Security Multi-Tool
+    echo -e "      ${YELLOW}Offensive Security Multi-Tool${NC}
 
-        ------------------------------------------------------------
-            Developer: Austin Tatham       Version: 1.0.0
-        ------------------------------------------------------------
+            ${MAGENTA}------------------------------------------------------------
+                Developer: Austin Tatham       Version: 1.0.0
+            ------------------------------------------------------------${NC}
  "
 }
 
@@ -372,6 +373,17 @@ temp_sqlmap() {
     dirtyresponse=$(sqlmap -u "https://$TARGET" --delay=2 --batch --level=5 --risk=3 --crawl=3 --fingerprint --random-agent -o "$OUTPUT_DIR/sqlmap.txt")
 }
 
+detect_waf() {
+    echo -e "${CYAN}[+] Detecting WAF...${NC}"
+    payload="' AND 1=1 --"
+    response=$(curl -s -d "param=$payload" "$TARGET" -o /dev/null -w "%{http_code}")
+    if [[ $response == "403" || $response == "406" ]]; then
+        echo -e "${RED}[!] WAF detected: Response code $response.${NC}"
+    else
+        echo -e "${GREEN}[+] No WAF detected.${NC}"
+    fi
+}
+
 test_http_methods() {
     echo -e "${CYAN}[+] Testing HTTP Methods...${NC}"
     methods=("GET" "POST" "PUT" "DELETE" "OPTIONS" "HEAD" "TRACE")
@@ -393,12 +405,14 @@ main() {
             detect_cms
             parse_js_files
             Port_Scanning
+            detect_waf
             FinalRecon_call
             ;;
         exploit)
             Port_Scanning
             parse_js_files
             test_http_methods
+            detect_waf
             test_file_upload
             test_directory_traversal
             bypass_403
@@ -409,11 +423,12 @@ main() {
             detect_cms
             parse_js_files
             test_http_methods
+            detect_waf
+            FinalRecon_call
             test_file_upload
             test_directory_traversal
             bypass_403
             Port_Scanning
-            FinalRecon_call
             sql_injection_test
             temp_sqlmap
             ;;
