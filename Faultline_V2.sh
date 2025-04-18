@@ -7,6 +7,7 @@ GREEN="\033[1;32m"
 CYAN="\033[1;96m"   #Cyan="\[\033[0;36m\]"
 YELLOW="\033[1;33m"
 MAGENTA="\033[1;35m"
+WHITE="\e[1;97m"
 NC="\033[0m" # No Color
 
 # ======= VARIABLES =======
@@ -38,10 +39,10 @@ banner() {
     echo "||                                                                                  ||";
     echo "||                                                                                  ||";
     echo "++----------------------------------------------------------------------------------++";
-    echo "++----------------------------------------------------------------------------------++";
-    echo -e "   ${NC}FaultLine: Red-Team Pentesting Suite\n"
+    echo "++----------------------------------------------------------------------------------++'${NC}'";
+    echo -e "   ${WHITE}FaultLine: Red-Team Pentesting Suite\n${NC}"
 
-    echo -e "      ${YELLOW}Offensive Security Multi-Tool${NC}
+    echo -e "      ${YELLOW}Offensive Security Multi-Tool\n${NC}
 
             ${MAGENTA}------------------------------------------------------------
                 Developer: Austin Tatham       Version: 1.0.0
@@ -143,6 +144,14 @@ crawl_html() {
     echo -e "${GREEN}[+] HTML Crawler Complete.${NC}"
 }
 
+subdomain_enum() {
+    echo -e "\n\e[94m[+] Enumerating Subdomains (subfinder + assetfinder + crt.sh)...\e[0m"
+    subfinder -d "$TARGET" -silent > "$OUTPUT_DIR/subfinder.txt"
+    assetfinder --subs-only "$TARGET" >> "$OUTPUT_DIR/subfinder.txt"
+    curl -s "https://crt.sh/?q=%25.$TARGET&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u >> "$OUTPUT_DIR/subfinder.txt"
+    sort -u "$OUTPUT_DIR/subfinder.txt" > "$OUTPUT_DIR/subdomains.txt"
+}
+
 detect_cms() {
     echo -e "${CYAN}[+] Detecting CMS...${NC}"
     response=$(curl -s "$TARGET")
@@ -170,6 +179,11 @@ bypass_403() {
     done
 }
 
+grab_screenshot() {
+    echo -e "\n\e[94m[+] Taking Screenshots with GoWitness...\e[0m"
+    gowitness single http://$TARGET --destination "$OUTPUT_DIR"
+   # echo -e "\e[91m[-] GoWitness not found. Skipping screenshotting.\e[0m"
+}
 
 Port_Scanning() {
     echo -e "${RED}[+] IMPORTANT!${NC}"
@@ -178,6 +192,11 @@ Port_Scanning() {
     nmap_results=$(sudo ./nmapAutomator.sh -H "$TARGET" -t Full)
     echo -e "${GREEN}[+] Nmap Results:${NC}\n$nmap_results"
     save_output "$nmap_results" "nmap_$TARGET.txt"
+}
+
+misconfigurations_fuzz(){
+    echo -e "\n\e[94m[+] Checking for Open or Misconfigured Services (FTP/SMB/NFS)...\e[0m"
+    nmap --script ftp-anon,ftp-bounce,smb-enum-shares,smb-enum-users,nfs-showmount -p 21,139,445,2049 "$TARGET" -oN "$OUTPUT_DIR/service_scripts.txt"
 }
 
 FinalRecon_call() {
@@ -261,6 +280,25 @@ test_file_upload() {
     echo -e "${GREEN}[+] File Upload Testing Complete.${NC}"
 
     rm -f test.php test.jsp test.html test.jpg.php test.php5 test.php\;.jpg test.asp test.exe
+}
+
+dns_brute() {
+    echo -e "\n\e[94m[+] Brute-forcing DNS...\e[0m"
+    dnsrecon -d "$TARGET" -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt -t brt > "$OUTPUT_DIR/dns_brute.txt"
+}
+
+
+fuzz_suite() {
+    echo -e "\e[96m[+] Launching Full-Stack Fuzzing Suite...\e[0m"
+    
+    echo -e "\n\e[94m[+] Fuzzing GET parameters for injection points...\e[0m"
+    ffuf -u "$TARGET?FUZZ=test" -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt -t 40 -mc all -of json -o "$OUTPUT_DIR/ffuf_params.json"
+    
+    echo -e "\n\e[94m[+] Running dirsearch...\e[0m"
+    dirsearch -u "$TARGET" -e php,html,js,txt -w /usr/share/seclists/Discovery/Web-Content/common.txt -o "$OUTPUT_DIR/dirsearch.txt"
+    
+    echo -e "\n\e[94m[+] Scanning for vulnerable network services...\e[0m"
+    nmap -p 161,500,1900,5353,111,2049 "$TARGET" -sV -oN "$OUTPUT_DIR/net_services.txt"
 }
 
 
@@ -368,10 +406,59 @@ test_sqli() {
     done
 }
 
+#temp_sqlmap() {
+#    echo -e "Start of Testing of SQLmap"
+#    dirtyresponse=$(sqlmap -u "https://$TARGET" --delay=2 --batch --level=5 --risk=3 --crawl=3 --fingerprint --random-agent -o "$OUTPUT_DIR/sqlmap.txt")
+#}
 temp_sqlmap() {
-    echo -e "Start of Testing of SQLmap"
-    dirtyresponse=$(sqlmap -u "https://$TARGET" --delay=2 --batch --level=5 --risk=3 --crawl=3 --fingerprint --random-agent -o "$OUTPUT_DIR/sqlmap.txt")
-}
+    echo -e "\n[+] Starting SQL Injection Recon on https://$TARGET"
+    
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    SQLMAP_BASE="$OUTPUT_DIR/sqlmap_$TIMESTAMP"
+    mkdir -p "$SQLMAP_BASE"
+    LOGFILE="$SQLMAP_BASE/full_report.log"
+    URL="https://$TARGET"
+
+    echo -e "\n[*] Phase 1: Fingerprinting & Crawling" | tee -a "$LOGFILE"
+    sqlmap -u "$URL" --batch --level=5 --risk=3 --crawl=3 --random-agent --technique=BEUSTQ \
+        --threads=4 --delay=1 --timeout=15 --retries=2 --output-dir="$SQLMAP_BASE" \
+        --flush-session --answers="follow=Y" --smart \
+        --fingerprint \
+        | tee -a "$LOGFILE"
+
+    echo -e "\n[*] Phase 2: Parameter Discovery & Testing" | tee -a "$LOGFILE"
+    sqlmap -u "$URL" --batch --level=5 --risk=3 --random-agent --technique=BEUSTQ \
+        --forms --crawl=3 --crawl-exclude="logout" \
+        --threads=5 --delay=1 \
+        --output-dir="$SQLMAP_BASE" \
+        --flush-session \
+        --identify-waf \
+        | tee -a "$LOGFILE"
+
+    echo -e "\n[*] Phase 3: Database Enumeration" | tee -a "$LOGFILE"
+    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
+        --threads=3 --delay=1 \
+        --output-dir="$SQLMAP_BASE" \
+        --dbs | tee -a "$LOGFILE"
+
+    echo -e "\n[*] Phase 4: Table & Column Enumeration (If DB found)" | tee -a "$LOGFILE"
+    # This can be looped through discovered DBs
+    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
+        --output-dir="$SQLMAP_BASE" \
+        -D TARGET_DB --tables | tee -a "$LOGFILE"
+
+    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
+        --output-dir="$SQLMAP_BASE" \
+        -D TARGET_DB -T TARGET_TABLE --columns | tee -a "$LOGFILE"
+
+    echo -e "\n[*] Phase 5: Optional Data Dump (Caution!)" | tee -a "$LOGFILE"
+    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
+        --output-dir="$SQLMAP_BASE" \
+        -D TARGET_DB -T TARGET_TABLE -C COLUMN1,COLUMN2 --dump | tee -a "$LOGFILE"
+
+    echo -e "\n[+] SQLmap Testing Completed! Logs saved in $SQLMAP_BASE"
+    }
+
 
 detect_waf() {
     echo -e "${CYAN}[+] Detecting WAF...${NC}"
@@ -403,7 +490,11 @@ main() {
         recon)
             crawl_html
             detect_cms
+            subdomain_enum
             parse_js_files
+            grab_screenshot
+            fuzz_suite
+            misconfigurations_fuzz
             Port_Scanning
             detect_waf
             FinalRecon_call
@@ -412,7 +503,12 @@ main() {
             Port_Scanning
             parse_js_files
             test_http_methods
+            subdomain_enum
+            grab_screenshot
+            dns_brute
+            fuzz_suite
             detect_waf
+            misconfigurations_fuzz
             test_file_upload
             test_directory_traversal
             bypass_403
@@ -422,8 +518,13 @@ main() {
             crawl_html
             detect_cms
             parse_js_files
+            dns_brute
+            subdomain_enum
             test_http_methods
+            grab_screenshot
             detect_waf
+            fuzz_suite
+            misconfigurations_fuzz
             FinalRecon_call
             test_file_upload
             test_directory_traversal
